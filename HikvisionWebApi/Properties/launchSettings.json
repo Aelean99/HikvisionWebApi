@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "HikvisionWebApi": {
+    "Hikvision": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

@@ -1,29 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace HikvisionWebApi.Modules
+namespace Hikvision.Modules
 {
 	  public class WebClient
 	  {
-			private string camBaseUri;
-			private string password = "tvmix333";
-
-			public WebClient() { }
-			public WebClient(string ip)
+		  internal WebClient(string ip, string password)
 			{
-				  camBaseUri = $"http://{ip}/ISAPI/";
+				var camBaseUri = $"http://{ip}/ISAPI/";
 
-				  CredentialCache credCache = new()
-				  {
-						{new UriBuilder(camBaseUri).Uri, "Basic", new NetworkCredential("admin", password)},
-						{new UriBuilder(camBaseUri).Uri, "Digest", new NetworkCredential("admin", password)}
-				  };
-
-				  Client = new HttpClient(
+				CredentialCache credCache = new()
+				{
+					  {new UriBuilder(camBaseUri).Uri, "Basic", new NetworkCredential("admin", password)},
+					  {new UriBuilder(camBaseUri).Uri, "Digest", new NetworkCredential("admin", password)}
+				}; 
+				
+				Client = new HttpClient(
 						new SocketsHttpHandler
 						{
 							  ConnectTimeout = TimeSpan.FromSeconds(30),
@@ -31,6 +28,23 @@ namespace HikvisionWebApi.Modules
 						}, disposeHandler: true)
 				  { BaseAddress = new UriBuilder(camBaseUri).Uri };
 			}
-			public static HttpClient Client { get; set; }
-	  }
+			internal static HttpClient Client { get; private set; }
+			internal static async Task InitClient(string ip)
+			{
+				StringCollection passwordCollection = new() { "tvmix333", "12345", "admin" };
+				foreach (var i in passwordCollection)
+				{
+					WebClient wc = new(ip, i);
+					var response = await Client.GetAsync("Security/userCheck");
+					if (response.StatusCode == HttpStatusCode.OK)
+					{
+						break;
+					}
+					Console.WriteLine(response.RequestMessage);
+					Console.WriteLine(response.StatusCode);
+				}
+			}
+
+	}
+
 }

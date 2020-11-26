@@ -1,32 +1,62 @@
-﻿using HikvisionWebApi.Modules;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
+using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Hikvision.Modules;
+using Microsoft.AspNetCore.Mvc;
 
-namespace HikvisionWebApi
-{
+namespace Hikvision.Controllers
+{ 
+	[ApiController, Route("api/[controller]/")]
+	public class IsapiController : ControllerBase
+	{ 
+		[HttpGet, Route("[action]")]
+		public async Task InitClient(string ip)
+		{
+			await WebClient.InitClient(ip);
+		}
 
-	  [ApiController, Route("api/[controller]/")]
-	  public class ISAPIController : ControllerBase
-	  {
-			/// <summary>
-			/// Проверка пароля учётной записи администратора
-			/// </summary>
-			/// <param name="ip">ip address</param>
-			/// <returns>
-			///	  200 - если введённый пароль совпадает с тем что на камере
-			///	  401 - пароль не прошёл проверку
-			/// </returns>
-			[HttpGet, Route("[action]")]
-			public async Task<string> UserCheck(string ip)
-			{
-				  return await Requests.UserCheck(ip);
-			}
+		[HttpGet, Route("[action]")]
+		public async Task<string> DeviceInfo()
+		{
+			return await Requests.DeviceInfo();
+		}
 
-			[HttpGet, Route("[action]")]
-			public async Task<string> DeviceInfo()
-			{
-				  return await Requests.DeviceInfo();
-			}
-	  }
+		[HttpGet, Route("[action]")]
+		public async Task<string> Ethernet()
+		{
+			return await Requests.Ethernet();
+		}
+
+		[HttpGet, Route("[action]")]
+		public async Task<string> Time()
+		{
+			return await Requests.Time();
+		}
+
+		[HttpGet, Route("[action]")]
+		public async Task<string> Email()
+		{
+			return await Requests.Email();
+		}
+
+		[HttpGet, Route("[action]")]
+		public async Task<string> Detection()
+		{
+			return await Requests.Detection();
+		}
+
+		[HttpGet, Route("[action]")]
+		public async Task<string> Wifi()
+		{
+			return await Requests.Wifi_List();
+		}
+
+		[HttpPut, Route("[action]")]
+		public async Task<string> Email(object _)
+		{
+			return await Put.Email();
+		}
+	}
 }

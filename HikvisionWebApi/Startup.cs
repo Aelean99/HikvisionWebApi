@@ -1,20 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace HikvisionWebApi
+
+namespace Hikvision
 {
-	  public class Startup
+	public class Startup
 	  {
 			public Startup(IConfiguration configuration)
 			{
@@ -30,7 +24,7 @@ namespace HikvisionWebApi
 				  services.AddControllers();
 				  services.AddSwaggerGen(c =>
 				  {
-						c.SwaggerDoc("v1", new OpenApiInfo { Title = "HikvisionWebApi", Version = "v1" });
+						c.SwaggerDoc("v1", new OpenApiInfo { Title = "Hikvision", Version = "v1" });
 				  });
 			}
 
@@ -41,7 +35,7 @@ namespace HikvisionWebApi
 				  {
 						app.UseDeveloperExceptionPage();
 						app.UseSwagger();
-						app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HikvisionWebApi v1"));
+						app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Hikvision v1"));
 				  }
 
 				  app.UseHttpsRedirection();
