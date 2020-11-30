@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace Hikvision.Modules
+namespace Hikvision.RequestsData
 {
 	public static class EmailData
 	{
@@ -26,10 +26,8 @@ namespace Hikvision.Modules
 			[XmlElement("enableAuthorization")] public bool EnableAuthorization = false;
 			[XmlElement("enableSSL")] public bool EnableSsl = false;
 			[XmlElement("addressingFormatType")] public string AddressingFormatType = "hostname";
-			[XmlElement("hostName")] public string HostName = "alarm.profintel.ru";
-			[XmlElement("portNo")] public int PortNo = new Random().Next(15005, 15006);
-			[XmlElement("enableTLS")] public bool EnableTls = false;
-			[XmlElement("startTLS")] public bool StartTls = false;
+			[XmlElement("hostName")] public string HostName { get; set; }
+			[XmlElement("portNo")] public int PortNo { get; set; }
 		}
 
 		public class ReceiverList

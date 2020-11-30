@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Hikvision.RequestsData;
 
 namespace Hikvision.Modules
 {
@@ -44,21 +43,68 @@ namespace Hikvision.Modules
 
 	internal static class Put
 	{
-		public static async Task<string> Email()
+		private static StreamContent SerializeXmlData(object data)
 		{
-			var test = new EmailData.mailing
-			{
-				Sender = new EmailData.Sender() { Smtp = new EmailData.Smtp() },
-				Attachment = new EmailData.Attachment { Snapshot = new EmailData.Snapshot() },
-				ReceiverList = new EmailData.ReceiverList() { Receiver = new EmailData.Receiver() }
-			};
-
-			
-			MemoryStream ms = new ();
-			new XmlSerializer(test.GetType()).Serialize(ms, test);
+			MemoryStream ms = new();
+			new XmlSerializer(data.GetType()).Serialize(ms, data);
 			ms.Seek(0, SeekOrigin.Begin);
-			StreamContent content = new (ms);
+			StreamContent content = new(ms);
+			return content;
+		}
+		public static async Task<string> Email(string smtpServer, int port)
+		{
+			if (port is 0)
+				port = new Random().Next(15005, 15007);
+
+			var data = new EmailData.mailing
+			{
+				Sender = new EmailData.Sender { Smtp = new EmailData.Smtp { HostName = smtpServer, PortNo = port} },
+				Attachment = new EmailData.Attachment { Snapshot = new EmailData.Snapshot() },
+				ReceiverList = new EmailData.ReceiverList { Receiver = new EmailData.Receiver() }
+			};
+			using var content = SerializeXmlData(data);
 			return await WebClient.Client.PutAsync("System/Network/mailing/1", content).Result.Content.ReadAsStringAsync();
+		}
+
+		public static async Task<string> Ntp(string ip, string addressFormatType)
+		{
+			var data = new TimeData.NTPServer()
+			{
+				IpAddress = ip, 
+				AddressingFormatType = addressFormatType
+			};
+			using var content = SerializeXmlData(data);
+			return await WebClient.Client.PutAsync("System/time/NtpServers", content).Result.Content.ReadAsStringAsync();
+		}
+
+		public static async Task<string> Time(string timezone)
+		{
+			var data = new TimeData.Time { TimeZone = timezone };
+			using var content = SerializeXmlData(data);
+			return await WebClient.Client.PutAsync("System/time", content).Result.Content.ReadAsStringAsync();
+		}
+
+		public static async Task<string> StreamingChannel(
+			int videoResolutionWidth, 
+			int videoResolutionHeight, 
+			int maxBitrate, 
+			string videoCodec, 
+			bool audioEnabled, 
+			string audioCompressType)
+		{
+			var data = new StreamingData.StreamingChannel
+			{
+				Audio = new StreamingData.Audio {AudioCompressionType = audioCompressType, Enabled = audioEnabled},
+				Video = new StreamingData.Video
+				{
+					VideoCodecType = videoCodec,
+					VbrUpperCap = maxBitrate,
+					VideoResolutionHeight = videoResolutionHeight,
+					VideoResolutionWidth = videoResolutionWidth
+				}
+			};
+			using var content = SerializeXmlData(data);
+			return await WebClient.Client.PutAsync("Streaming/channels/101", content).Result.Content.ReadAsStringAsync();
 		}
 
 	}

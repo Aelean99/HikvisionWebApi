@@ -54,9 +54,33 @@ namespace Hikvision.Controllers
 		}
 
 		[HttpPut, Route("[action]")]
-		public async Task<string> Email(object _)
+		public async Task<string> Email(string smtpServer = "alarm.profintel.ru", int port = 0)
 		{
-			return await Put.Email();
+			return await Put.Email(smtpServer, port);
 		}
+
+		[HttpPut, Route("[action]")]
+		public async Task<string> Ntp(string ip = "217.24.176.232", string addressFormatType = "ip")
+		{
+			return await Put.Ntp(ip, addressFormatType);
+		}
+
+		[HttpPut, Route("[action]")]
+		public async Task<string> Time(string timezone = "CST-5:00:00")
+		{
+			return await Put.Time(timezone);
+		}
+
+		[HttpPut, Route("[action]")]
+		public async Task<string> StreamConfig(int videoResolutionWidth = 1280,
+			int videoResolutionHeight = 720,
+			int maxBitrate = 1024,
+			string videoCodec = "H.264",
+			bool audioEnabled = false,
+			string audioCompressType = "MP2L2")
+		{
+			return await Put.StreamingChannel(videoResolutionWidth, videoResolutionHeight, maxBitrate, videoCodec, audioEnabled, audioCompressType);
+		}
+
 	}
 }
