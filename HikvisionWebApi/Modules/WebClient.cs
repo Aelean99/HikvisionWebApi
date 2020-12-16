@@ -27,20 +27,25 @@ namespace Hikvision.Modules
 				  { BaseAddress = new UriBuilder(camBaseUri).Uri };
 			}
 			internal static HttpClient Client { get; private set; }
-			internal static async Task InitClient(string ip)
+			internal static async Task<HttpStatusCode> InitClient(string ip)
 			{
 				StringCollection passwordCollection = new() { "tvmix333", "12345", "admin" };
+				HttpStatusCode statusCode = HttpStatusCode.Unused;
 				foreach (var i in passwordCollection)
 				{
 					WebClient wc = new(ip, i);
 					var response = await Client.GetAsync("Security/userCheck");
 					if (response.StatusCode == HttpStatusCode.OK)
 					{
+						statusCode = response.StatusCode;
 						break;
 					}
-					// Console.WriteLine(response.RequestMessage);
-					Console.WriteLine(response.StatusCode);
+					else
+					{
+						statusCode = response.StatusCode;
+					}
 				}
+				return statusCode;
 			}
 
 	}

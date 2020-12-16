@@ -19,11 +19,11 @@ namespace Hikvision.Controllers
 		/// <param name="ip">ip адрес устройства</param>
 		/// <returns></returns>
 		[HttpGet, Route("[action]")]
-		public async Task InitClient(string ip)
+		public async Task<HttpStatusCode> InitClient(string ip)
 		{
 			try
 			{
-				await WebClient.InitClient(ip);
+				return await WebClient.InitClient(ip);
 			}
 			catch (Exception e) { Console.WriteLine(e); throw; }
 		}
@@ -265,15 +265,23 @@ namespace Hikvision.Controllers
 		[HttpGet, Route("[action]")]
 		public async Task SetAllConfigurations(string ip)
 		{
-			await InitClient(ip);
-			Console.WriteLine($"NTP configuring: {await Ntp().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"Time configuring: {await SetTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"VideoStream configuring: {await StreamConfig().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"Email configuring: {await SetEmail().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"Dns configuring: {await ChangeDns().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"DetectionMask configuring: {await SetDetectionMask().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"OsdChannelName configuring: {await OsdChannelName().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-			Console.WriteLine($"OsdDateTime configuring: {await OsdDateTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+			var connectionStatus = await InitClient(ip);
+			if (connectionStatus == HttpStatusCode.OK)
+			{
+				Console.WriteLine($"Connection initializing.. {connectionStatus}");
+				Console.WriteLine($"NTP configuring: {await Ntp().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"Time configuring: {await SetTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"VideoStream configuring: {await StreamConfig().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"Email configuring: {await SetEmail().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"Dns configuring: {await ChangeDns().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"DetectionMask configuring: {await SetDetectionMask().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"OsdChannelName configuring: {await OsdChannelName().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"OsdDateTime configuring: {await OsdDateTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+			}
+			else
+			{
+				Console.WriteLine($"Connection initializing.. {connectionStatus}");
+			}
 		}
 	}
 }
