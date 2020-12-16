@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
@@ -86,7 +87,32 @@ namespace Hikvision.Modules
 		{
 			return await WebClient.Client.GetStringAsync("System/Network/interfaces/2/wireless/accessPointList");
 		}
+
+		/// <summary>
+		/// Текущее отображение даты и времени на видео-потоке
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<string> OsdDateTime()
+		{
+			return await WebClient.Client.GetStringAsync("System/Video/inputs/channels/1/overlays/dateTimeOverlay");
+		}
+
+
+		/// <summary>
+		/// Текущее отображение имени устройства/канала на видео-потоке
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<string> OsdChannelName()
+		{
+			return await WebClient.Client.GetStringAsync(
+				"System/Video/inputs/channels/1/overlays/channelNameOverlay");
+		}
 	}
+
+
+
+
+
 
 	internal static class Put
 	{
@@ -110,7 +136,7 @@ namespace Hikvision.Modules
 		/// <param name="smtpServer"></param>
 		/// <param name="port"></param>
 		/// <returns></returns>
-		public static async Task<string> Email(string smtpServer, int port)
+		public static async Task<(HttpStatusCode statusCode, string text)> Email(string smtpServer, int port)
 		{
 			//SMTP сервер пока-что работает на двух портах.
 			//Если порт явно не передан в запросе - выбрать рандомно порт сервера
@@ -119,7 +145,7 @@ namespace Hikvision.Modules
 
 			//Чтобы обеспечить уникальность email адреса с которого будут посылаться сообщения,
 			//необходимо для каждого устройства извлекать серийный номер, и на его основе собирать email адрес отправителя
-			var jObject = Requests.ToJObject(Requests.DeviceInfo());
+			var jObject = Requests.ToJObject(await Requests.DeviceInfo());
 			var serial = $"HK-{jObject["DeviceInfo"]?["serialNumber"]}@camera.ru"; //HK-serialNumber@camera.ru
 
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
@@ -129,9 +155,10 @@ namespace Hikvision.Modules
 				Attachment = new EmailData.Attachment { Snapshot = new EmailData.Snapshot() },
 				ReceiverList = new EmailData.ReceiverList { Receiver = new EmailData.Receiver { EmailAddress = serial }}
 			};
-			Console.WriteLine(serial);
+			//Console.WriteLine(serial);
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("System/Network/mailing/1", content).Result.Content.ReadAsStringAsync();
+			var response = await WebClient.Client.PutAsync("System/Network/mailing/1", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
 		/// <summary>
@@ -140,7 +167,7 @@ namespace Hikvision.Modules
 		/// <param name="ip"></param>
 		/// <param name="addressFormatType"></param>
 		/// <returns></returns>
-		public static async Task<string> Ntp(string ip, string addressFormatType)
+		public static async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip, string addressFormatType)
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
 			var data = new TimeData.NTPServer()
@@ -149,18 +176,20 @@ namespace Hikvision.Modules
 				AddressingFormatType = addressFormatType
 			};
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("System/time/NtpServers", content).Result.Content.ReadAsStringAsync();
+			var response = await WebClient.Client.PutAsync("System/time/NtpServers", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
-		public static async Task<string> Time(string timezone)
+		public static async Task<(HttpStatusCode statusCode, string text)> Time(string timezone)
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
 			var data = new TimeData.Time { TimeZone = timezone };
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("System/time", content).Result.Content.ReadAsStringAsync();
+			var response = await WebClient.Client.PutAsync("System/time", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
-		public static async Task<string> StreamingChannel(
+		public static async Task<(HttpStatusCode statusCode, string text)> StreamingChannel(
 			int videoResolutionWidth, 
 			int videoResolutionHeight, 
 			int maxBitrate, 
@@ -181,22 +210,24 @@ namespace Hikvision.Modules
 				}
 			};
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("Streaming/channels/101", content).Result.Content.ReadAsStringAsync();
+			var response = await WebClient.Client.PutAsync("Streaming/channels/101", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
-		private static async Task<string> EnableSendingDetectionToMail()
+		private static async Task<(HttpStatusCode statusCode, string text)> EnableSendingDetectionToMail()
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
 			var data = new DetectionData.EventTriggerNotificationList { EventTriggerNotification = new DetectionData.EventTriggerNotification()};
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("Event/triggers/VMD-1/notifications", content).Result.Content.ReadAsStringAsync();
+			var response = await WebClient.Client.PutAsync("Event/triggers/VMD-1/notifications", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
 		/// <summary>
 		/// Метод смены DNS
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> ChangeDns()
+		public static async Task<(HttpStatusCode statusCode, string text)> ChangeDns()
 		{
 			var jObject = Requests.ToJObject( await Requests.Ethernet());
 
@@ -219,7 +250,8 @@ namespace Hikvision.Modules
 			};
 
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("System/Network/interfaces/1/ipAddress", content).Result.Content.ReadAsStringAsync();
+			var response = await WebClient.Client.PutAsync("System/Network/interfaces/1/ipAddress", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
 		/// <summary>
@@ -227,7 +259,7 @@ namespace Hikvision.Modules
 		/// </summary>
 		/// <param name="gridMap">Сетка детекции</param>
 		/// <returns></returns>
-		public static async Task<string> SetDetectionMask(string gridMap)
+		public static async Task<(HttpStatusCode statusCode, string text)> SetDetectionMask(string gridMap)
 		{
 			await EnableSendingDetectionToMail();
 
@@ -245,8 +277,37 @@ namespace Hikvision.Modules
 			};
 
 			using var content = SerializeXmlData(data);
-			return await WebClient.Client.PutAsync("System/Video/inputs/channels/1/motionDetection", content).Result.Content.ReadAsStringAsync();
+			var response =
+				await WebClient.Client.PutAsync("System/Video/inputs/channels/1/motionDetection", content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
+		/// <summary>
+		/// Настройка отображения даты и времени на видео-потоке
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<(HttpStatusCode statusCode, string text)> OsdDateTime()
+		{
+			var data = new OsdData.dateTimeOverlay();
+			using var content = SerializeXmlData(data);
+			var response = await WebClient.Client.PutAsync("System/Video/inputs/channels/1/overlays/dateTimeOverlay",
+				content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
+		}
+
+		/// <summary>
+		/// Настройка отображения имени канала на видео-потоке
+		/// Выключает отображение
+		/// </summary>
+		/// <returns></returns>
+		public static async Task<(HttpStatusCode statusCode, string text)> OsdChannelName()
+		{
+			var data = new OsdData.channelNameOverlay();
+			using var content = SerializeXmlData(data);
+			var response =
+				await WebClient.Client.PutAsync("System/Video/inputs/channels/1/overlays/channelNameOverlay",
+					content);
+			return (response.StatusCode, await response.Content.ReadAsStringAsync());
+		}
 	}
 }
