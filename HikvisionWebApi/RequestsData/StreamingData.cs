@@ -20,12 +20,11 @@ namespace Hikvision.RequestsData
 			[XmlElement("videoCodecType")] public string VideoCodecType { get; set; }
 			[XmlElement("videoResolutionWidth")] public int VideoResolutionWidth { get; set; }
 			[XmlElement("videoResolutionHeight")] public int VideoResolutionHeight { get; set; }
-
-			[XmlElement("videoQualityControlType")] public string VideoQualityControlType = "VBR";
-			[XmlElement("fixedQuality")] public byte FixedQuality = 100;
-			[XmlElement("maxFrameRate")] public int MaxFrameRate = 1200;
+			[XmlElement("videoQualityControlType")] public string VideoQualityControlType { get; set; }
+			[XmlElement("fixedQuality")] public byte FixedQuality { get; set; }
+			[XmlElement( "maxFrameRate" )] public int MaxFrameRate { get; set; }
 			[XmlElement("vbrUpperCap")] public int VbrUpperCap { get; set; }
-			[XmlElement("GovLength")] public byte GovLength = 20;
+			[XmlElement("GovLength")] public byte GovLength { get; set; }
 		}
 
 		public class Audio

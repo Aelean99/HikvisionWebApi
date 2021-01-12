@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Data.Common;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Hikvision.Modules;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 using WebClient = Hikvision.Modules.WebClient;
 
 namespace Hikvision.Controllers
@@ -25,7 +31,7 @@ namespace Hikvision.Controllers
 			{
 				return await WebClient.InitClient(ip);
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -39,7 +45,7 @@ namespace Hikvision.Controllers
 			{
 				return await Requests.DeviceInfo();
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -53,7 +59,7 @@ namespace Hikvision.Controllers
 			{
 				return await Requests.Ethernet();
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -67,7 +73,7 @@ namespace Hikvision.Controllers
 			{
 				return await Requests.Time();
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -81,7 +87,7 @@ namespace Hikvision.Controllers
 			{
 				return await Requests.Email();
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -95,7 +101,7 @@ namespace Hikvision.Controllers
 			{
 				return await Requests.Detection();
 			}
-			catch (Exception a) { Console.WriteLine(a); throw; }
+			catch (Exception a) { Console.WriteLine(a.Message); throw; }
 		}
 
 		/// <summary>
@@ -109,7 +115,7 @@ namespace Hikvision.Controllers
 			{
 				return await Requests.Wifi_List();
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -126,7 +132,7 @@ namespace Hikvision.Controllers
 				var (statusCode, text) = await Put.Email(smtpServer, port);
 				return (statusCode, text);
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -143,7 +149,7 @@ namespace Hikvision.Controllers
 				var (statusCode, text) = await Put.Ntp(ip, addressFormatType);
 				return (statusCode, text);
 			}
-			catch (Exception e) { Console.WriteLine(e); throw; }
+			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
 		/// <summary>
@@ -159,7 +165,7 @@ namespace Hikvision.Controllers
 				var (statusCode, text) = await Put.Time(timezone);
 				return (statusCode, text);
 			}
-			catch (Exception a) { Console.WriteLine(a); throw; }
+			catch (Exception a) { Console.WriteLine(a.Message); throw; }
 		}
 
 		/// <summary>
@@ -185,7 +191,7 @@ namespace Hikvision.Controllers
 				var (statusCode, text) = await Put.StreamingChannel(videoResolutionWidth, videoResolutionHeight, maxBitrate, videoCodec, audioEnabled, audioCompressType);
 				return (statusCode, text);
 			}
-			catch (Exception a) { Console.WriteLine(a); throw; }
+			catch (Exception a) { Console.WriteLine(a.Message); throw; }
 		}
 
 		/// <summary>
@@ -200,7 +206,7 @@ namespace Hikvision.Controllers
 				var (statusCode, text) = await Put.ChangeDns();
 				return (statusCode, text);
 			}
-			catch (Exception a) { Console.WriteLine(a); throw; }
+			catch (Exception a) { Console.WriteLine(a.Message); throw; }
 		}
 
 		/// <summary>
@@ -212,7 +218,7 @@ namespace Hikvision.Controllers
 		/// В каждом ряду ячейки группируются по 4 шт(всего их 22 = количеству стобцов), в конце остаётся 2
 		/// Значение маски в виде строки hexdecimal
 		/// Выключенное состояние ячейки: 0
-		///Возможные варианты: 1, 2, 4, 8, a(10), b(11), c(12), d(13), e(14), f(15)
+		/// Возможные варианты: 1, 2, 4, 8, a(10), b(11), c(12), d(13), e(14), f(15)
 		///
 		/// Только первая ячейка: 8
 		/// Только вторая ячейка: 4
@@ -235,7 +241,7 @@ namespace Hikvision.Controllers
 				var (statusCode, text) = await Put.SetDetectionMask(gridMap);
 				return (statusCode, text);
 			}
-			catch (Exception a) { Console.WriteLine(a); throw; }
+			catch (Exception a) { Console.WriteLine(a.Message); throw; }
 		}
 
 		/// <summary>
@@ -263,20 +269,26 @@ namespace Hikvision.Controllers
 		}
 
 		[HttpGet, Route("[action]")]
-		public async Task SetAllConfigurations(string ip)
+		public async Task SetAllConfigurations(uint id, bool audioEnabled)
 		{
+			var cameraObj = await DBrequests.CameraGet( id );
+			var result = cameraObj?["result"];
+			JObject cameraData = (JObject)JsonConvert.DeserializeObject( string.Join("", result ));
+			string ip = cameraData["rtsp_ip"].ToString();
+
 			var connectionStatus = await InitClient(ip);
 			if (connectionStatus == HttpStatusCode.OK)
 			{
 				Console.WriteLine($"Connection initializing.. {connectionStatus}");
 				Console.WriteLine($"NTP configuring: {await Ntp().ContinueWith(antecedent => antecedent.Result.statusCode)}");
 				Console.WriteLine($"Time configuring: {await SetTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"VideoStream configuring: {await StreamConfig().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"VideoStream configuring: {await StreamConfig(audioEnabled: audioEnabled).ContinueWith(antecedent => antecedent.Result.statusCode)}");
 				Console.WriteLine($"Email configuring: {await SetEmail().ContinueWith(antecedent => antecedent.Result.statusCode)}");
 				Console.WriteLine($"Dns configuring: {await ChangeDns().ContinueWith(antecedent => antecedent.Result.statusCode)}");
 				Console.WriteLine($"DetectionMask configuring: {await SetDetectionMask().ContinueWith(antecedent => antecedent.Result.statusCode)}");
 				Console.WriteLine($"OsdChannelName configuring: {await OsdChannelName().ContinueWith(antecedent => antecedent.Result.statusCode)}");
 				Console.WriteLine($"OsdDateTime configuring: {await OsdDateTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
+				Console.WriteLine($"DBedit status: {await DBrequests.CameraEdit(id, audioEnabled)}");
 			}
 			else
 			{

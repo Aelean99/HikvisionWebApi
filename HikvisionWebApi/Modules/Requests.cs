@@ -29,7 +29,7 @@ namespace Hikvision.Modules
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine(e);
+				Console.WriteLine(e.Message);
 				throw;
 			}
 		}
@@ -38,7 +38,7 @@ namespace Hikvision.Modules
 		/// Получить системную конфигурацию устройства(MAC адрес, serial номер и т.п)
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> DeviceInfo()
+		internal static async Task<string> DeviceInfo()
 		{
 			return await WebClient.Client.GetStringAsync("System/deviceInfo");
 		}
@@ -47,7 +47,7 @@ namespace Hikvision.Modules
 		/// Получить конфигурацию настроек времени
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> Time()
+		internal static async Task<string> Time()
 		{
 			return await WebClient.Client.GetStringAsync("System/time");
 		}
@@ -56,7 +56,7 @@ namespace Hikvision.Modules
 		/// Получить кофнигурацию сетевых интерфейсов
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> Ethernet()
+		internal static async Task<string> Ethernet()
 		{
 			return await WebClient.Client.GetStringAsync("System/Network/interfaces/1/ipAddress");
 		}                     
@@ -65,7 +65,7 @@ namespace Hikvision.Modules
 		/// Получить конфигурацию SMTP
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> Email()
+		internal static async Task<string> Email()
 		{
 			return await WebClient.Client.GetStringAsync("System/Network/mailing");
 		}
@@ -74,7 +74,7 @@ namespace Hikvision.Modules
 		/// Получить конфигурацию детекции движения
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> Detection()
+		internal static async Task<string> Detection()
 		{
 			return await WebClient.Client.GetStringAsync("System/Video/inputs/channels/1/motionDetection");
 		}
@@ -83,7 +83,7 @@ namespace Hikvision.Modules
 		/// Сканировать список wi-fi сетей
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> Wifi_List()
+		internal static async Task<string> Wifi_List()
 		{
 			return await WebClient.Client.GetStringAsync("System/Network/interfaces/2/wireless/accessPointList");
 		}
@@ -92,7 +92,7 @@ namespace Hikvision.Modules
 		/// Текущее отображение даты и времени на видео-потоке
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> OsdDateTime()
+		internal static async Task<string> OsdDateTime()
 		{
 			return await WebClient.Client.GetStringAsync("System/Video/inputs/channels/1/overlays/dateTimeOverlay");
 		}
@@ -102,7 +102,7 @@ namespace Hikvision.Modules
 		/// Текущее отображение имени устройства/канала на видео-потоке
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<string> OsdChannelName()
+		internal static async Task<string> OsdChannelName()
 		{
 			return await WebClient.Client.GetStringAsync(
 				"System/Video/inputs/channels/1/overlays/channelNameOverlay");
@@ -136,7 +136,7 @@ namespace Hikvision.Modules
 		/// <param name="smtpServer"></param>
 		/// <param name="port"></param>
 		/// <returns></returns>
-		public static async Task<(HttpStatusCode statusCode, string text)> Email(string smtpServer, int port)
+		internal static async Task<(HttpStatusCode statusCode, string text)> Email(string smtpServer, int port)
 		{
 			//SMTP сервер пока-что работает на двух портах.
 			//Если порт явно не передан в запросе - выбрать рандомно порт сервера
@@ -167,7 +167,7 @@ namespace Hikvision.Modules
 		/// <param name="ip"></param>
 		/// <param name="addressFormatType"></param>
 		/// <returns></returns>
-		public static async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip, string addressFormatType)
+		internal static async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip, string addressFormatType)
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
 			var data = new TimeData.NTPServer()
@@ -180,7 +180,7 @@ namespace Hikvision.Modules
 			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
-		public static async Task<(HttpStatusCode statusCode, string text)> Time(string timezone)
+		internal static async Task<(HttpStatusCode statusCode, string text)> Time(string timezone)
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
 			var data = new TimeData.Time { TimeZone = timezone };
@@ -189,7 +189,7 @@ namespace Hikvision.Modules
 			return (response.StatusCode, await response.Content.ReadAsStringAsync());
 		}
 
-		public static async Task<(HttpStatusCode statusCode, string text)> StreamingChannel(
+		internal static async Task<(HttpStatusCode statusCode, string text)> StreamingChannel(
 			int videoResolutionWidth, 
 			int videoResolutionHeight, 
 			int maxBitrate, 
@@ -203,6 +203,10 @@ namespace Hikvision.Modules
 				Audio = new StreamingData.Audio {AudioCompressionType = audioCompressType, Enabled = audioEnabled},
 				Video = new StreamingData.Video
 				{
+					VideoQualityControlType = "VBR",
+					FixedQuality = 100,
+					MaxFrameRate = 1200,
+					GovLength = 20,
 					VideoCodecType = videoCodec,
 					VbrUpperCap = maxBitrate,
 					VideoResolutionHeight = videoResolutionHeight,
@@ -227,7 +231,7 @@ namespace Hikvision.Modules
 		/// Метод смены DNS
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<(HttpStatusCode statusCode, string text)> ChangeDns()
+		internal static async Task<(HttpStatusCode statusCode, string text)> ChangeDns()
 		{
 			var jObject = Requests.ToJObject( await Requests.Ethernet());
 
@@ -241,12 +245,26 @@ namespace Hikvision.Modules
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
 			var data = new NetworkData.IPAddress
 			{
+				IpVersion = "dual",
+				AddressingType = "static",
 				IpAddress = ipAddress,
 				SubnetMask = subnetMask,
 				DefaultGateway = new NetworkData.DefaultGateway { IpAddress = defaultGateway },
 				PrimaryDns = new NetworkData.PrimaryDNS { IpAddress = primaryDns },
-				SecondaryDns = new NetworkData.SecondaryDNS {IpAddress = secondaryDns},
-				Ipv6Mode = new NetworkData.Ipv6Mode { Ipv6AddressList = new NetworkData.Ipv6AddressList { V6Address = new NetworkData.V6Address() } }
+				SecondaryDns = new NetworkData.SecondaryDNS { IpAddress = secondaryDns },
+				Ipv6Mode = new NetworkData.Ipv6Mode{
+					Ipv6AddressList = new NetworkData.Ipv6AddressList 
+					{ 
+						V6Address = new NetworkData.V6Address
+						{
+							Id = 1,
+							Type = "manual",
+							Address = "::",
+							BitMask = 0
+						}
+					},
+					IpV6AddressingType = "ra"
+				}
 			};
 
 			using var content = SerializeXmlData(data);
@@ -259,7 +277,7 @@ namespace Hikvision.Modules
 		/// </summary>
 		/// <param name="gridMap">Сетка детекции</param>
 		/// <returns></returns>
-		public static async Task<(HttpStatusCode statusCode, string text)> SetDetectionMask(string gridMap)
+		internal static async Task<(HttpStatusCode statusCode, string text)> SetDetectionMask(string gridMap)
 		{
 			await EnableSendingDetectionToMail();
 
@@ -286,7 +304,7 @@ namespace Hikvision.Modules
 		/// Настройка отображения даты и времени на видео-потоке
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<(HttpStatusCode statusCode, string text)> OsdDateTime()
+		internal static async Task<(HttpStatusCode statusCode, string text)> OsdDateTime()
 		{
 			var data = new OsdData.dateTimeOverlay();
 			using var content = SerializeXmlData(data);
@@ -300,7 +318,7 @@ namespace Hikvision.Modules
 		/// Выключает отображение
 		/// </summary>
 		/// <returns></returns>
-		public static async Task<(HttpStatusCode statusCode, string text)> OsdChannelName()
+		internal static async Task<(HttpStatusCode statusCode, string text)> OsdChannelName()
 		{
 			var data = new OsdData.channelNameOverlay();
 			using var content = SerializeXmlData(data);

@@ -9,8 +9,8 @@ namespace Hikvision.RequestsData
 	{
 		public class IPAddress
 		{
-			[XmlElement("ipVersion")] public string IpVersion = "dual";
-			[XmlElement("addressingType")] public string AddressingType = "static";
+			[XmlElement("ipVersion")] public string IpVersion { get; set; }
+			[XmlElement("addressingType")] public string AddressingType { get; set; }
 			[XmlElement("ipAddress")] public string IpAddress { get; set; }
 			[XmlElement("subnetMask")] public string SubnetMask { get; set; }
 			[XmlElement("DefaultGateway")] public DefaultGateway DefaultGateway { get; set; }
@@ -34,7 +34,7 @@ namespace Hikvision.RequestsData
 
 		public class Ipv6Mode
 		{
-			[XmlElement("ipV6AddressingType")] public string IpV6AddressingType = "ra";
+			[XmlElement("ipV6AddressingType")] public string IpV6AddressingType { get; set; }
 			[XmlElement("ipv6AddressList")] public Ipv6AddressList Ipv6AddressList { get; set; }
 		}
 		
@@ -44,11 +44,10 @@ namespace Hikvision.RequestsData
 		}
 		public class V6Address
 		{
-			[XmlElement("id")] public byte Id = 1;
-			[XmlElement("type")] public string Type = "manual";
-			[XmlElement("address")] public string Address = "::";
-			[XmlElement("bitMask")] public byte BitMask = 0;
-
+			[XmlElement( "id" )] public byte Id { get; set; }
+			[XmlElement( "type" )] public string Type { get; set; }
+			[XmlElement( "address" )] public string Address { get; set; }
+			[XmlElement( "bitMask" )] public byte BitMask { get; set; }
 		}
 
 
