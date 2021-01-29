@@ -25,13 +25,15 @@ namespace Hikvision.Modules
 			public object data { get; set; }
 		}
 
-		public class Data
+		public class CameraData
 		{
 			public uint id { get; set; }
 			public bool active { get; set; }
 			public string password { get; set; }
 			public ushort screen_url { get; set; }
 			public bool monitoring { get; set; }
+			public bool mic { get; set; }
+			public string rtsp_ip { get; set; }
 			public ushort camera_type { get; set; }
 			public ushort camera_status { get; set; }
 			public ushort settings { get; set; }
@@ -54,7 +56,7 @@ namespace Hikvision.Modules
 			var data = new DbData
 			{
 				signature = (string)dbconf?["signature"],
-				data = new Data
+				data = new CameraData
 				{
 					detection_mask = 
 						"1111111111111111111111" +

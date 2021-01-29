@@ -6,16 +6,16 @@ namespace Hikvision.RequestsData
 	{
 		public class NTPServer
 		{
-			[XmlElement("id")] public byte Id = 1;
-			[XmlElement("addressingFormatType")] public string AddressingFormatType { get; set; }
-			[XmlElement("ipAddress")] public string IpAddress { get; set; }
-			[XmlElement("portNo")] public byte PortNo = 123;
-			[XmlElement("synchronizeInterval")] public byte SynchronizeInterval = 30;
+			public byte id { get; set; }
+			public string addressingFormatType { get; set; }
+			public string ipAddress { get; set; }
+			public byte portNo { get; set; }
+			public byte synchronizeInterval { get; set; }
 		} 
 
 		public class Time
 		{
-			[XmlElement("timeMode")] public string TimeMode = "NTP";
+			[XmlElement("timeMode")] public string TimeMode { get; set; }
 			[XmlElement("timeZone")] public string TimeZone { get; set; }
 		}
 	}

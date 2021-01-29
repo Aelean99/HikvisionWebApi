@@ -1,17 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Hikvision.Modules;
-using Microsoft.AspNetCore.Identity;
+using Hikvision.RequestsData;
+
+using static Hikvision.Modules.Put;
 using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using static Hikvision.Modules.DBrequests;
 using WebClient = Hikvision.Modules.WebClient;
+using System.Xml.Linq;
+using System.Xml.Schema;
 
 namespace Hikvision.Controllers
 { 
@@ -141,16 +147,33 @@ namespace Hikvision.Controllers
 		/// <param name="ip"></param>
 		/// <param name="addressFormatType">Если ip, то ntp в виде доменного имени не будет работать. Если <c>hostname</c>, то потребуется заполнять поле <c>hostName</c>(Не реализовано)</param>
 		/// <returns></returns>
-		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip = "217.24.176.232", string addressFormatType = "ip")
-		{
-			try
-			{
-				var (statusCode, text) = await Put.Ntp(ip, addressFormatType);
-				return (statusCode, text);
-			}
-			catch (Exception e) { Console.WriteLine(e.Message); throw; }
-		}
+		//[HttpPut, Route("[action]")]
+		//public async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip = "217.24.176.232", string addressFormatType = "ip")
+		//{
+		//	try
+		//	{
+		//		var (statusCode, text) = await Put.Ntp();
+		//		return (statusCode, text);
+		//	}
+		//	catch (Exception e) { Console.WriteLine(e.Message); throw; }
+		//}
+
+		//[HttpPost, Route( "[action]" )]
+		//public async Task<string> NtpFromBody( [FromBody] TimeData.NTPServer data )
+		//{
+		//	try
+		//	{
+		//		var jsonData = JsonConvert.SerializeObject( data );
+		//		XNode node = JsonConvert.DeserializeXNode( jsonData , "NTPServer" );
+		//		Console.WriteLine($"Node: {node}");
+		//		HttpContent content = new StringContent( node );
+		//		var response = await WebClient.Client.PutAsync( "System/time/NtpServers", content );
+		//		//var (statusCode, text) = await Put.Ntp(data);
+		//		//return (statusCode, text);
+		//		return await response.Content.ReadAsStringAsync();
+		//	}
+		//	catch ( Exception e ) { Console.WriteLine( e.Message ); throw; }
+		//}
 
 		/// <summary>
 		/// Настройка часового пояса
@@ -268,31 +291,54 @@ namespace Hikvision.Controllers
 			return (statusCode, text);
 		}
 
-		[HttpGet, Route("[action]")]
-		public async Task SetAllConfigurations(uint id, bool audioEnabled)
+		[HttpGet, Route( "[action]" )]
+		public async Task SetAllConfigurations( uint id, bool audioEnabled )
 		{
 			var cameraObj = await DBrequests.CameraGet( id );
 			var result = cameraObj?["result"];
-			JObject cameraData = (JObject)JsonConvert.DeserializeObject( string.Join("", result ));
+			JObject cameraData = (JObject) JsonConvert.DeserializeObject( string.Join( "", result ) );
 			string ip = cameraData["rtsp_ip"].ToString();
 
-			var connectionStatus = await InitClient(ip);
-			if (connectionStatus == HttpStatusCode.OK)
+			var connectionStatus = await InitClient( ip );
+			if ( connectionStatus == HttpStatusCode.OK )
 			{
-				Console.WriteLine($"Connection initializing.. {connectionStatus}");
-				Console.WriteLine($"NTP configuring: {await Ntp().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"Time configuring: {await SetTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"VideoStream configuring: {await StreamConfig(audioEnabled: audioEnabled).ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"Email configuring: {await SetEmail().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"Dns configuring: {await ChangeDns().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"DetectionMask configuring: {await SetDetectionMask().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"OsdChannelName configuring: {await OsdChannelName().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"OsdDateTime configuring: {await OsdDateTime().ContinueWith(antecedent => antecedent.Result.statusCode)}");
-				Console.WriteLine($"DBedit status: {await DBrequests.CameraEdit(id, audioEnabled)}");
+				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
+				Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"Time configuring: {await SetTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"VideoStream configuring: {await StreamConfig( audioEnabled: audioEnabled ).ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"Email configuring: {await SetEmail().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"Dns configuring: {await ChangeDns().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"DetectionMask configuring: {await SetDetectionMask().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"OsdChannelName configuring: {await OsdChannelName().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"OsdDateTime configuring: {await OsdDateTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"DBedit status: {await DBrequests.CameraEdit( id, audioEnabled )}" );
 			}
 			else
 			{
-				Console.WriteLine($"Connection initializing.. {connectionStatus}");
+				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
+			}
+		}
+
+		[HttpPost, Route( "[action]" )]
+		public async Task SetAllConfigurationsFromBody( [FromBody] CameraData camData )
+		{
+			var connectionStatus = await InitClient( camData.rtsp_ip );
+			if ( connectionStatus == HttpStatusCode.OK )
+			{
+				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
+				Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"Time configuring: {await SetTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"VideoStream configuring: {await StreamConfig( audioEnabled: camData.mic ).ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"Email configuring: {await SetEmail().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"Dns configuring: {await ChangeDns().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"DetectionMask configuring: {await SetDetectionMask().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"OsdChannelName configuring: {await OsdChannelName().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"OsdDateTime configuring: {await OsdDateTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				Console.WriteLine( $"DBedit status: {await DBrequests.CameraEdit( camData.id, camData.mic )}" );
+			}
+			else
+			{
+				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
 			}
 		}
 	}

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Hikvision.RequestsData;
+
+using Microsoft.AspNetCore.Mvc;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -121,7 +124,7 @@ namespace Hikvision.Modules
 		/// </summary>
 		/// <param name="data">Объект для сериализации</param>
 		/// <returns></returns>
-		private static StreamContent SerializeXmlData(object data)
+		internal static StreamContent SerializeXmlData(object data)
 		{
 			MemoryStream ms = new();
 			new XmlSerializer(data.GetType()).Serialize(ms, data);
@@ -164,17 +167,11 @@ namespace Hikvision.Modules
 		/// <summary>
 		/// Настройка NTP на устройстве
 		/// </summary>
-		/// <param name="ip"></param>
-		/// <param name="addressFormatType"></param>
+		/// <param name="data"></param>
 		/// <returns></returns>
-		internal static async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip, string addressFormatType)
+		internal static async Task<(HttpStatusCode statusCode, string text)> Ntp( object data )
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
-			var data = new TimeData.NTPServer()
-			{
-				IpAddress = ip, 
-				AddressingFormatType = addressFormatType
-			};
 			using var content = SerializeXmlData(data);
 			var response = await WebClient.Client.PutAsync("System/time/NtpServers", content);
 			return (response.StatusCode, await response.Content.ReadAsStringAsync());
@@ -183,7 +180,7 @@ namespace Hikvision.Modules
 		internal static async Task<(HttpStatusCode statusCode, string text)> Time(string timezone)
 		{
 			//Данные которые будут преобразованы в XML для отправки в теле запроса
-			var data = new TimeData.Time { TimeZone = timezone };
+			var data = new TimeData.Time { TimeMode = "NTP", TimeZone = timezone };
 			using var content = SerializeXmlData(data);
 			var response = await WebClient.Client.PutAsync("System/time", content);
 			return (response.StatusCode, await response.Content.ReadAsStringAsync());
