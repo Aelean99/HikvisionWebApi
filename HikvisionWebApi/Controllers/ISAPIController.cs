@@ -303,7 +303,7 @@ namespace Hikvision.Controllers
 			if ( connectionStatus == HttpStatusCode.OK )
 			{
 				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
-				Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				//Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
 				Console.WriteLine( $"Time configuring: {await SetTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
 				Console.WriteLine( $"VideoStream configuring: {await StreamConfig( audioEnabled: audioEnabled ).ContinueWith( antecedent => antecedent.Result.statusCode )}" );
 				Console.WriteLine( $"Email configuring: {await SetEmail().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
@@ -326,7 +326,7 @@ namespace Hikvision.Controllers
 			if ( connectionStatus == HttpStatusCode.OK )
 			{
 				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
-				Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
+				//Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
 				Console.WriteLine( $"Time configuring: {await SetTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
 				Console.WriteLine( $"VideoStream configuring: {await StreamConfig( audioEnabled: camData.mic ).ContinueWith( antecedent => antecedent.Result.statusCode )}" );
 				Console.WriteLine( $"Email configuring: {await SetEmail().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
