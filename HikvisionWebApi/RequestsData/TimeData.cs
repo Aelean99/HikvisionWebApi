@@ -15,8 +15,8 @@ namespace Hikvision.RequestsData
 
 		public class Time
 		{
-			[XmlElement("timeMode")] public string TimeMode { get; set; }
-			[XmlElement("timeZone")] public string TimeZone { get; set; }
+			public string TimeMode { get; set; }
+			public string TimeZone { get; set; }
 		}
 	}
 }

@@ -13,7 +13,7 @@ namespace Hikvision.RequestsData
 		/// </summary>
 		public class EventTriggerNotificationList
 		{
-			[XmlElement("EventTriggerNotification")] public EventTriggerNotification EventTriggerNotification { get; set; }
+			public EventTriggerNotification EventTriggerNotification { get; set; }
 		}
 		
 		/// <summary>
@@ -21,9 +21,9 @@ namespace Hikvision.RequestsData
 		/// </summary>
 		public class EventTriggerNotification
 		{
-			[XmlElement("id")] public byte Id = 1; 
-			[XmlElement("notificationMethod")] public string NotificationMethod = "email";
-			[XmlElement("notificationRecurrence")] public string NotificationRecurrence = "recurring";
+			public string id { get; set; }
+			public string notificationMethod { get; set; }
+			public string notificationRecurrence { get; set; }
 		}
 
 
@@ -32,11 +32,11 @@ namespace Hikvision.RequestsData
 		/// </summary>
 		public class MotionDetection
 		{
-			[XmlElement("enabled")] public bool Enabled { get; set; }
-			[XmlElement("enableHighlight")] public bool EnableHighlight { get; set; }
-			[XmlElement("regionType")] public string RegionType = "grid";
-			[XmlElement("Grid")] public Grid Grid { get; set; }
-			[XmlElement("MotionDetectionLayout")] public MotionDetectionLayout MotionDetectionLayout { get; set; }
+			public bool enabled { get; set; }
+			public bool enableHighlight { get; set; }
+			public string regionType { get; set; }
+			public Grid Grid { get; set; }
+			public MotionDetectionLayout MotionDetectionLayout { get; set; }
 		}
 
 		/// <summary>
@@ -44,8 +44,8 @@ namespace Hikvision.RequestsData
 		/// </summary>
 		public class Grid
 		{
-			[XmlElement("rowGranularity")] public byte RowGranularity = 18;
-			[XmlElement("columnGranularity")] public byte ColumnGranularity = 22;
+			public byte rowGranularity = 18;
+			public byte columnGranularity = 22;
 		}
 
 		/// <summary>
@@ -53,8 +53,8 @@ namespace Hikvision.RequestsData
 		/// </summary>
 		public class MotionDetectionLayout
 		{
-			[XmlElement("sensitivityLevel")] public byte SensitivityLevel { get; set; }
-			[XmlElement("layout")] public Layout Layout { get; set; }
+			public byte sensitivityLevel { get; set; }
+			public Layout layout { get; set; }
 		}
 
 		/// <summary>
@@ -62,7 +62,8 @@ namespace Hikvision.RequestsData
 		/// </summary>
 		public class Layout
 		{
-			[XmlElement("gridMap")] public string GridMap { get; set; }
+			public string gridMap { get; set; }
 		}
+
 	}
 }

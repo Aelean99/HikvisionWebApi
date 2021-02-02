@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using Hikvision.Modules;
 using Hikvision.RequestsData;
-
-using static Hikvision.Modules.Put;
 using Microsoft.AspNetCore.Mvc;
-
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using static Hikvision.Modules.DBrequests;
 using WebClient = Hikvision.Modules.WebClient;
-using System.Xml.Linq;
-using System.Xml.Schema;
 
 namespace Hikvision.Controllers
-{ 
+{
 	[ApiController, Route("api/[controller]/")]
 	public class IsapiController : ControllerBase
 	{
+
+		private static StringContent ToStringContent(object data, string rootName)
+		{
+			var jsonData = JsonConvert.SerializeObject( data ); //data to jsonObject
+			var xmlString = JsonConvert.DeserializeXNode( jsonData, rootName ).ToString();	// jsonObject to xmlString
+			StringContent xmlData = new( xmlString );	// xmlString to StringContent(http content put/post methods)
+			return xmlData;
+		}
+
 		/// <summary>
 		/// Инициализация объекта авторизации на устройство.
 		/// 1 раз применить и все последующие методы будут использовать готовый объект с авторизацией, без необходимости каждый раз дёргать метод снова
@@ -124,222 +123,175 @@ namespace Hikvision.Controllers
 			catch (Exception e) { Console.WriteLine(e.Message); throw; }
 		}
 
+		
 		/// <summary>
-		/// Настройка конфигурации SMTP
+		/// SMTP configuration
 		/// </summary>
-		/// <param name="smtpServer"></param>
-		/// <param name="port"></param>
+		/// <param name="data">jsonData</param>
 		/// <returns></returns>
-		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> SetEmail(string smtpServer = "alarm.profintel.ru", int port = 0)
+		[HttpPut, Route( "[action]" )]
+		public async Task<HttpStatusCode> SetEmailFromBody( [FromBody] EmailData.Mailing data )
 		{
 			try
 			{
-				var (statusCode, text) = await Put.Email(smtpServer, port);
-				return (statusCode, text);
+				var jObject = Requests.ToJObject( await Requests.DeviceInfo() );
+				var serial = $"HK-{jObject["DeviceInfo"]?["serialNumber"]}@camera.ru"; //HK-serialNumber@camera.ru
+				data.sender.emailAddress = serial;
+				data.receiverList.receiver.emailAddress = serial;
+
+				using var xmlData = ToStringContent( data, "mailing" );
+				var response = await WebClient.Client.PutAsync( "System/Network/mailing/1", xmlData );
+				return response.StatusCode;
 			}
-			catch (Exception e) { Console.WriteLine(e.Message); throw; }
+			catch ( Exception e ) { Console.WriteLine( e.Message ); throw; }
 		}
 
 		/// <summary>
-		/// Настройка NTP
+		/// Настраивает NTP конфигурацию
 		/// </summary>
-		/// <param name="ip"></param>
-		/// <param name="addressFormatType">Если ip, то ntp в виде доменного имени не будет работать. Если <c>hostname</c>, то потребуется заполнять поле <c>hostName</c>(Не реализовано)</param>
+		/// <param name="data">jsonData</param>
 		/// <returns></returns>
-		//[HttpPut, Route("[action]")]
-		//public async Task<(HttpStatusCode statusCode, string text)> Ntp(string ip = "217.24.176.232", string addressFormatType = "ip")
-		//{
-		//	try
-		//	{
-		//		var (statusCode, text) = await Put.Ntp();
-		//		return (statusCode, text);
-		//	}
-		//	catch (Exception e) { Console.WriteLine(e.Message); throw; }
-		//}
+		[HttpPost, Route( "[action]" )]
+		public async Task<HttpStatusCode> SetNtpFromBody( [FromBody] TimeData.NTPServer data )
+		{
+			try
+			{
+				using var xmlData = ToStringContent( data, "NTPServer" );
+				var response = await WebClient.Client.PostAsync( "System/time/NtpServers", xmlData );
+				return response.StatusCode;
+			}
+			catch ( Exception e ) { Console.WriteLine( e.Message ); throw; }
+		}
 
-		//[HttpPost, Route( "[action]" )]
-		//public async Task<string> NtpFromBody( [FromBody] TimeData.NTPServer data )
-		//{
-		//	try
-		//	{
-		//		var jsonData = JsonConvert.SerializeObject( data );
-		//		XNode node = JsonConvert.DeserializeXNode( jsonData , "NTPServer" );
-		//		Console.WriteLine($"Node: {node}");
-		//		HttpContent content = new StringContent( node );
-		//		var response = await WebClient.Client.PutAsync( "System/time/NtpServers", content );
-		//		//var (statusCode, text) = await Put.Ntp(data);
-		//		//return (statusCode, text);
-		//		return await response.Content.ReadAsStringAsync();
-		//	}
-		//	catch ( Exception e ) { Console.WriteLine( e.Message ); throw; }
-		//}
 
 		/// <summary>
 		/// Настройка часового пояса
 		/// </summary>
-		/// <param name="timezone">Часовой пояс</param>
+		/// <param name="data"></param>
 		/// <returns></returns>
-		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> SetTime(string timezone = "CST-5:00:00")
+		[HttpPut, Route( "[action]" )]
+		public async Task<HttpStatusCode> SetTimeFromBody( [FromBody] TimeData.Time data )
 		{
 			try
 			{
-				var (statusCode, text) = await Put.Time(timezone);
-				return (statusCode, text);
+				using var xmlData = ToStringContent( data, "Time" );
+				var response = await WebClient.Client.PutAsync( "System/time", xmlData );
+				return response.StatusCode;
+
 			}
-			catch (Exception a) { Console.WriteLine(a.Message); throw; }
+			catch ( Exception a ) { Console.WriteLine( a.Message ); throw; }
 		}
 
+		
 		/// <summary>
-		/// Настройка конфигурации качества видео-потока
+		/// Настройка видео-аудио конфигурации
 		/// </summary>
-		/// <param name="videoResolutionWidth">Невозможно задать значения отсутствующие в параметрах устройства. Варианты разрешения можно узнать методом capabillities(не реализовано)</param>
-		/// <param name="videoResolutionHeight">Невозможно задать значения отсутствующие в параметрах устройства. Варианты разрешения можно узнать методом capabillities(не реализовано)</param>
-		/// <param name="maxBitrate">Максимальная скорость которую займёт устройство</param>
-		/// <param name="videoCodec"></param>
-		/// <param name="audioEnabled">Если true - устройство будет записывать звук</param>
-		/// <param name="audioCompressType">MP2L2 - лучший кодек, остальные смотреть в capabillities(не реализован)</param>
+		/// <param name="data">jsonData</param>
 		/// <returns></returns>
-		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> StreamConfig(int videoResolutionWidth = 1280,
-			int videoResolutionHeight = 720,
-			int maxBitrate = 1024,
-			string videoCodec = "H.264",
-			bool audioEnabled = false,
-			string audioCompressType = "MP2L2")
+
+		[HttpPut, Route( "[action]" )]
+		public async Task<HttpStatusCode> SetStreamConfigFromBody([FromBody] StreamingData.StreamingChannel data)
 		{
 			try
 			{
-				var (statusCode, text) = await Put.StreamingChannel(videoResolutionWidth, videoResolutionHeight, maxBitrate, videoCodec, audioEnabled, audioCompressType);
-				return (statusCode, text);
+				using var xmlData = ToStringContent( data, "StreamingChannel" );
+				var response = await WebClient.Client.PutAsync("Streaming/channels/101", xmlData);
+				return response.StatusCode;
 			}
-			catch (Exception a) { Console.WriteLine(a.Message); throw; }
+			catch ( Exception a ) { Console.WriteLine( a.Message ); throw; }
 		}
 
-		/// <summary>
-		/// Настройка DNS серверов
-		/// </summary>
-		/// <returns></returns>
-		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> ChangeDns()
-		{
-			try
-			{
-				var (statusCode, text) = await Put.ChangeDns();
-				return (statusCode, text);
-			}
-			catch (Exception a) { Console.WriteLine(a.Message); throw; }
-		}
 
 		/// <summary>
-		/// Настройка маски детекции
+		/// Change DNS on device
 		/// </summary>
-		/// <param name="gridMap">
-		/// Сетка детекции. По умолчанию заполняется полностью
-		/// Состоит из 22 столбцов и 18 рядов
-		/// В каждом ряду ячейки группируются по 4 шт(всего их 22 = количеству стобцов), в конце остаётся 2
-		/// Значение маски в виде строки hexdecimal
-		/// Выключенное состояние ячейки: 0
-		/// Возможные варианты: 1, 2, 4, 8, a(10), b(11), c(12), d(13), e(14), f(15)
-		///
-		/// Только первая ячейка: 8
-		/// Только вторая ячейка: 4
-		/// Только третяя ячейка: 2
-		/// Только четвёртая ячейка: 1
-		/// В зависимости от выбранных ячеек, производится сумма их значений и выдаётся результат
-		/// Пример: выбрать 3 и 2 ячейки, их сумма = 6, сетка будет выглядеть так: 6000
-		/// Пример: выбрать 1 и 3 ячейки, их сумма = 10, сетка будет выглядеть так: a000
-		/// Пример: выбрать 1 2 3 и 4 ячейки, их сумма = 15, сетка будет выглядеть так: f000
-		/// Пример: выбрать первые 20 ячеек в первой строке, сетка будет выглядеть так: fffff
-		/// Пример: выбрать все 22 ячейки в первой строке, сетка будет выглядеть так: fffffc 
-		/// </param>
+		/// <param name="data">jsonData</param>
 		/// <returns></returns>
-		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> SetDetectionMask(
-			string gridMap = "fffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffcfffffc")
+		[HttpPut, Route( "[action]" )]
+		public async Task<HttpStatusCode> SetDnsFromBody([FromBody] NetworkData.BodyData data)
 		{
 			try
 			{
-				var (statusCode, text) = await Put.SetDetectionMask(gridMap);
-				return (statusCode, text);
+				using var xmlData = ToStringContent(data, "IPAddress" );
+				var response = await WebClient.Client.PutAsync( "System/Network/interfaces/1/ipAddress", xmlData );
+				return response.StatusCode;
 			}
-			catch (Exception a) { Console.WriteLine(a.Message); throw; }
+			catch ( Exception a ) { Console.WriteLine( a.Message ); throw; }
 		}
+
 
 		/// <summary>
 		/// Настройка отображения даты и времени на видео-потоке
 		/// </summary>
 		/// <returns></returns>
 		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> OsdDateTime()
+		public async Task<HttpStatusCode> SetOsdChannelNameFromBody( [FromBody] OsdData.channelNameOverlay data)
 		{
-			var (statusCode, text) = await Put.OsdDateTime();
-			return (statusCode, text);
+			using var xmlData = ToStringContent( data, "channelNameOverlay" );
+			var response = await WebClient.Client.PutAsync( "System/Video/inputs/channels/1/overlays/channelNameOverlay", xmlData);
+			return response.StatusCode;
 		}
 
 
 		/// <summary>
-		/// Настройка отображения имени канала/устройства на видео-потоке
+		/// Настройка отображения времени на канале
 		/// Отключение отображения
 		/// </summary>
+		/// <param name="data">jsonData</param>
 		/// <returns></returns>
 		[HttpPut, Route("[action]")]
-		public async Task<(HttpStatusCode statusCode, string text)> OsdChannelName()
+		public async Task<HttpStatusCode> SetOsdDateTimeFromBody( [FromBody] OsdData.dateTimeOverlay data)
 		{
-			var (statusCode, text) = await Put.OsdChannelName(); 
-			return (statusCode, text);
+			using var xmlData = ToStringContent( data, "dateTimeOverlay " );
+			var response = await WebClient.Client.PutAsync( "System/Video/inputs/channels/1/overlays/dateTimeOverlay", xmlData );
+			return response.StatusCode;
 		}
 
-		[HttpGet, Route( "[action]" )]
-		public async Task SetAllConfigurations( uint id, bool audioEnabled )
-		{
-			var cameraObj = await DBrequests.CameraGet( id );
-			var result = cameraObj?["result"];
-			JObject cameraData = (JObject) JsonConvert.DeserializeObject( string.Join( "", result ) );
-			string ip = cameraData["rtsp_ip"].ToString();
 
-			var connectionStatus = await InitClient( ip );
-			if ( connectionStatus == HttpStatusCode.OK )
-			{
-				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
-				//Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"Time configuring: {await SetTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"VideoStream configuring: {await StreamConfig( audioEnabled: audioEnabled ).ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"Email configuring: {await SetEmail().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"Dns configuring: {await ChangeDns().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"DetectionMask configuring: {await SetDetectionMask().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"OsdChannelName configuring: {await OsdChannelName().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"OsdDateTime configuring: {await OsdDateTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"DBedit status: {await DBrequests.CameraEdit( id, audioEnabled )}" );
-			}
-			else
-			{
-				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
-			}
+		/// <summary>
+		/// Настройка способа отправки детекции
+		/// </summary>
+		/// <param name="data">jsonData</param>
+		/// <returns></returns>
+		[HttpPut, Route("[action]")]
+		public async Task<HttpStatusCode> SetAlarmNotificationsFromBody([FromBody] DetectionData.EventTriggerNotificationList data )
+		{
+			using var xmlData = ToStringContent( data, "EventTriggerNotificationList" );
+			var response = await WebClient.Client.PutAsync( "Event/triggers/VMD-1/notifications", xmlData );
+			return response.StatusCode;
 		}
 
-		[HttpPost, Route( "[action]" )]
-		public async Task SetAllConfigurationsFromBody( [FromBody] CameraData camData )
+
+		/// <summary>
+		/// Включение детекции движения с предустановленной заполенной маской детекции
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPut, Route("[action]")]
+		public async Task<HttpStatusCode> SetDetectionFromBody([FromBody] DetectionData.MotionDetection data )
 		{
-			var connectionStatus = await InitClient( camData.rtsp_ip );
-			if ( connectionStatus == HttpStatusCode.OK )
-			{
-				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
-				//Console.WriteLine( $"NTP configuring: {await Ntp().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"Time configuring: {await SetTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"VideoStream configuring: {await StreamConfig( audioEnabled: camData.mic ).ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"Email configuring: {await SetEmail().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"Dns configuring: {await ChangeDns().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"DetectionMask configuring: {await SetDetectionMask().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"OsdChannelName configuring: {await OsdChannelName().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"OsdDateTime configuring: {await OsdDateTime().ContinueWith( antecedent => antecedent.Result.statusCode )}" );
-				Console.WriteLine( $"DBedit status: {await DBrequests.CameraEdit( camData.id, camData.mic )}" );
-			}
-			else
-			{
-				Console.WriteLine( $"Connection initializing.. {connectionStatus}" );
-			}
+			using var xmlData = ToStringContent( data, "MotionDetection" );
+			var response = await WebClient.Client.PutAsync("System/Video/inputs/channels/1/motionDetection", xmlData);
+			return response.StatusCode;
 		}
+
+
+		/// <summary>
+		/// Метод смены маски детекции
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPut, Route( "[action]" )]
+		public async Task<HttpStatusCode> ChangeDetectionMaskFromBody( [FromBody] DetectionData.MotionDetectionLayout data )
+		{
+			if(WebClient.Client is null )
+			{
+				await WebClient.InitClient("192.168.0.27");
+			}
+			using var xmlData = ToStringContent( data, "MotionDetectionGridLayout" );
+			var response = await WebClient.Client.PutAsync( "System/Video/inputs/channels/1/motionDetection/layout/gridLayout", xmlData );
+			return response.StatusCode;
+		}
+
 	}
 }

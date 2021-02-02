@@ -11,26 +11,26 @@ namespace Hikvision.RequestsData
 	{
 		public class StreamingChannel
 		{
-			[XmlElement("Video")] public Video Video { get; set; }
-			[XmlElement("Audio")] public Audio Audio { get; set; }
+			public Video Video { get; set; }
+			public Audio Audio { get; set; }
 		}
 
 		public class Video
 		{
-			[XmlElement("videoCodecType")] public string VideoCodecType { get; set; }
-			[XmlElement("videoResolutionWidth")] public int VideoResolutionWidth { get; set; }
-			[XmlElement("videoResolutionHeight")] public int VideoResolutionHeight { get; set; }
-			[XmlElement("videoQualityControlType")] public string VideoQualityControlType { get; set; }
-			[XmlElement("fixedQuality")] public byte FixedQuality { get; set; }
-			[XmlElement( "maxFrameRate" )] public int MaxFrameRate { get; set; }
-			[XmlElement("vbrUpperCap")] public int VbrUpperCap { get; set; }
-			[XmlElement("GovLength")] public byte GovLength { get; set; }
+			public string videoCodecType { get; set; }
+			public int videoResolutionWidth { get; set; }
+			public int videoResolutionHeight { get; set; }
+			public string videoQualityControlType { get; set; }
+			public byte fixedQuality { get; set; }
+			public int maxFrameRate { get; set; }
+			public int vbrUpperCap { get; set; }
+			public byte GovLength { get; set; }
 		}
 
 		public class Audio
 		{
-			[XmlElement("enabled")] public bool Enabled { get; set; }
-			[XmlElement("audioCompressionType")] public string AudioCompressionType { get; set; }
+			public bool enabled { get; set; }
+			public string audioCompressionType { get; set; }
 		}
 	}
 }

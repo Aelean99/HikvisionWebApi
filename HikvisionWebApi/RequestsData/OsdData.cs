@@ -6,19 +6,19 @@ namespace Hikvision.RequestsData
 	{
 		public class channelNameOverlay
 		{
-			[XmlElement("enabled")] public bool Enabled = false;
-			[XmlElement("positionX")] public short PositionX = 512;
-			[XmlElement("positionY")] public short PositionY = 64;
+			public bool enabled { get; set; }
+			public short positionX { get; set; }
+			public short positionY { get; set; }
 		}
 
 		public class dateTimeOverlay
 		{
-			[XmlElement("enabled")] public bool Enabled = false;
-			[XmlElement("positionX")] public short PositionX = 0;
-			[XmlElement("positionY")] public short PositionY = 544;
-			[XmlElement("dateStyle")] public string DateStyle = "DD-MM-YYYY";
-			[XmlElement("timeStyle")] public string TimeStyle = "24hour";
-			[XmlElement("displayWeek")] public bool DisplayWeek = false;
+			public bool enabled { get; set; }
+			public short positionX { get; set; }
+			public short positionY { get; set; }
+			public string dateStyle { get; set; }
+			public string timeStyle { get; set; }
+			public bool displayWeek { get; set; }
 		}
 	}
 }

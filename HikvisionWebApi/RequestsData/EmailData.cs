@@ -5,52 +5,51 @@ namespace Hikvision.RequestsData
 {
 	public static class EmailData
 	{
-		[Serializable]
-		public class mailing
+		public class Mailing
 		{
-			[XmlElement("id")] public byte Id = 1;
-			[XmlElement("sender")] public Sender Sender { get; set; }
-			[XmlElement("receiverList")] public ReceiverList ReceiverList { get; set; }
-			[XmlElement("attachment")] public Attachment Attachment { get; set; }
+			public byte id { get; set; }
+			public Sender sender { get; set; }
+			public ReceiverList receiverList { get; set; }
+			public Attachment attachment { get; set; }
 		}
 
 		public class Sender
 		{
-			[XmlElement("emailAddress")] public string EmailAddress = "hikvisioncam@cam.ru";
-			[XmlElement("name")] public string Name = "camera";
-			[XmlElement("smtp")] public Smtp Smtp { get; set; }
+			public string name { get; set; }
+			public string emailAddress { get; set; }
+			public Smtp smtp { get; set; }
 		}
 
 		public class Smtp
 		{
-			[XmlElement("enableAuthorization")] public bool EnableAuthorization = false;
-			[XmlElement("enableSSL")] public bool EnableSsl = false;
-			[XmlElement("addressingFormatType")] public string AddressingFormatType = "hostname";
-			[XmlElement("hostName")] public string HostName { get; set; }
-			[XmlElement("portNo")] public int PortNo { get; set; }
+			public bool enableAuthorization { get; set; }
+			public bool enableSSL { get; set; }
+			public string addressingFormatType { get; set; }
+			public string hostName { get; set; }
+			public int portNo { get; set; }
 		}
 
 		public class ReceiverList
 		{
-			[XmlElement("receiver")] public Receiver Receiver { get; set; }
+			public Receiver receiver { get; set; }
 		}
 
 		public class Receiver
 		{
-			[XmlElement("id")] public byte Id = 1;
-			[XmlElement("name")] public string Name = "camera";
-			[XmlElement("emailAddress")] public string EmailAddress = "hikvisioncam@cam.ru";
+			public byte id { get; set; }
+			public string name { get; set; }
+			public string emailAddress { get; set; }
 		}
 
 		public class Attachment
 		{
-			[XmlElement("snapshot")] public Snapshot Snapshot { get; set; }
+			public Snapshot snapshot { get; set; }
 		}
 
 		public class Snapshot
 		{
-			[XmlElement("enabled")] public bool Enabled = false;
-			[XmlElement("interval")] public int Interval = 2;
+			public bool enabled { get; set; }
+			public int interval { get; set; }
 		}
 	}
 }
