@@ -2,7 +2,7 @@
 
 namespace Hikvision.RequestsData
 {
-	public static class OsdData
+	public class OsdData
 	{
 		public class channelNameOverlay
 		{

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-
-namespace Hikvision.RequestsData
+﻿namespace Hikvision.RequestsData
 {
-	public static class DetectionData
+	public class DetectionData
 	{
 		/// <summary>
 		/// Обязательный родительский класс для настройки действий при обнаружении движения
@@ -63,6 +57,12 @@ namespace Hikvision.RequestsData
 		public class Layout
 		{
 			public string gridMap { get; set; }
+		}
+
+		public class GridFromDB
+		{
+			public uint id { get; set; }
+			public string dbGridMap { get; set; }
 		}
 
 	}

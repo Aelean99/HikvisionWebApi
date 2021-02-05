@@ -5,9 +5,9 @@ namespace Hikvision.RequestsData
 	/// <summary>
 	/// Классы которые будут сериализованы в XML дату для отправки на камеру
 	/// </summary>
-	public static class NetworkData
+	public class NetworkData
 	{
-		public class BodyData
+		public class RootData
 		{
 			public string ipVersion { get; set; }
 			public string addressingType { get; set; }

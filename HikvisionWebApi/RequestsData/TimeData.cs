@@ -2,11 +2,11 @@
 
 namespace Hikvision.RequestsData
 {
-	public static class TimeData
+	public class TimeData
 	{
 		public class NTPServer
 		{
-			public byte id { get; set; }
+			public string id { get; set; }
 			public string addressingFormatType { get; set; }
 			public string ipAddress { get; set; }
 			public byte portNo { get; set; }
@@ -15,8 +15,8 @@ namespace Hikvision.RequestsData
 
 		public class Time
 		{
-			public string TimeMode { get; set; }
-			public string TimeZone { get; set; }
+			public string timeMode { get; set; }
+			public string timeZone { get; set; }
 		}
 	}
 }

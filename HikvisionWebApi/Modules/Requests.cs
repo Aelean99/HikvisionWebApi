@@ -1,14 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Serialization;
-using Hikvision.RequestsData;
-
-using Microsoft.AspNetCore.Mvc;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -21,7 +13,7 @@ namespace Hikvision.Modules
 		/// </summary>
 		/// <param name="data">XML объект из которого в дальнейшем будут извлечены значения</param>
 		/// <returns>десериализованный jobject объект</returns>
-		internal static JObject ToJObject(object data)
+		public static JObject ToJObject(object data)
 		{
 			try
 			{
@@ -43,7 +35,12 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> DeviceInfo()
 		{
-			return await WebClient.Client.GetStringAsync("System/deviceInfo");
+
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/deviceInfo" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
 
 		/// <summary>
@@ -52,7 +49,11 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> Time()
 		{
-			return await WebClient.Client.GetStringAsync("System/time");
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/time" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
 
 		/// <summary>
@@ -61,7 +62,11 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> Ethernet()
 		{
-			return await WebClient.Client.GetStringAsync("System/Network/interfaces/1/ipAddress");
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/Network/interfaces/1/ipAddress" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}                     
 
 		/// <summary>
@@ -70,7 +75,12 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> Email()
 		{
-			return await WebClient.Client.GetStringAsync("System/Network/mailing");
+
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/Network/mailing" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
 
 		/// <summary>
@@ -79,7 +89,11 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> Detection()
 		{
-			return await WebClient.Client.GetStringAsync("System/Video/inputs/channels/1/motionDetection");
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/Video/inputs/channels/1/motionDetection" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
 
 		/// <summary>
@@ -88,7 +102,11 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> Wifi_List()
 		{
-			return await WebClient.Client.GetStringAsync("System/Network/interfaces/2/wireless/accessPointList");
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/Network/interfaces/2/wireless/accessPointList" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
 
 		/// <summary>
@@ -97,7 +115,11 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> OsdDateTime()
 		{
-			return await WebClient.Client.GetStringAsync("System/Video/inputs/channels/1/overlays/dateTimeOverlay");
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/Video/inputs/channels/1/overlays/dateTimeOverlay" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
 
 
@@ -107,27 +129,11 @@ namespace Hikvision.Modules
 		/// <returns></returns>
 		internal static async Task<string> OsdChannelName()
 		{
-			return await WebClient.Client.GetStringAsync(
-				"System/Video/inputs/channels/1/overlays/channelNameOverlay");
+			try
+			{
+				return await WebClient.Client.GetStringAsync( "System/Video/inputs/channels/1/overlays/channelNameOverlay" );
+			}
+			catch ( Exception e ) { return e.Message; }
 		}
-	}
-
-
-	internal static class Put
-	{
-		/// <summary>
-		/// Метод сериализует класс с данными в XML, затем преобразует в StreamContent для отправки в теле запроса.
-		/// </summary>
-		/// <param name="data">Объект для сериализации</param>
-		/// <returns></returns>
-		internal static StreamContent SerializeXmlData(object data)
-		{
-			MemoryStream ms = new();
-			new XmlSerializer(data.GetType()).Serialize(ms, data);
-			ms.Seek(0, SeekOrigin.Begin);
-			StreamContent content = new(ms);
-			return content;
-		}
-	
 	}
 }

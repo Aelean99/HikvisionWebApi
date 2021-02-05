@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 
 namespace Hikvision.RequestsData
 {
-	public static class EmailData
+	public class EmailData
 	{
 		public class Mailing
 		{
