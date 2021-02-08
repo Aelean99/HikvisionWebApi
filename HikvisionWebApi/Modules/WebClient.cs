@@ -1,15 +1,22 @@
-﻿using System;
+﻿using Hikvision.RequestsData;
+
+using Newtonsoft.Json;
+
+using System;
 using System.Collections.Specialized;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Hikvision.Modules
 {
 	public class WebClient
 	{
-		public static string cam_ip { get; set; }
+		public static string CamIp { get; set; }
+		public static int CamStatusCode { get; set; }
 		internal static HttpClient Client { get; set; }
+		
 		internal WebClient(string ip, string password)
 		{
 			var camBaseUri = $"http://{ip}/ISAPI/";
@@ -26,28 +33,33 @@ namespace Hikvision.Modules
 			};
 		}
 
-		internal static async Task<HttpStatusCode> InitClient(string ip)
+
+		internal static async Task<int> InitClient(string ip)
 		{
-			cam_ip = ip;
+			CamIp = ip;
 			StringCollection passwordCollection = new() { "tvmix333", "12345", "admin" };
-			HttpStatusCode statusCode = HttpStatusCode.Unused;
+
 			foreach (var password in passwordCollection)
 			{
 				WebClient wc = new(ip, password);
 				var response = await Client.GetAsync("Security/userCheck");
-				if (response.StatusCode == HttpStatusCode.OK)
+				if ( (int)response.StatusCode == 404 ) //Проверяем статус HTTP запроса, если 404 - то устройство не поддерживается и в дальнейших вычислениях нет смысла
 				{
-					statusCode = response.StatusCode;
-					break;
+					CamStatusCode = (int) response.StatusCode;
+					return 404;
 				}
-				else
+
+				var jsonResponse = Requests.XmlToJson(await response.Content.ReadAsStringAsync()); // Если запрос прошёл, камера вернёт ответ в виде XML
+				CamResponses responseData = JsonConvert.DeserializeObject<CamResponses>( jsonResponse );
+				CamStatusCode = responseData.userCheck.StatusValue; // Извлекаем результат из тела ответа камеры
+				switch ( CamStatusCode )
 				{
-					statusCode = response.StatusCode;
+					case 200: { return CamStatusCode; } // Если пароль подошёл, то в дальнейшем переборе паролей нет смысла, прерывается цикл
+					case 401: { CamStatusCode = 401; break; } // Если пароль не подошёл, продолжаем перебор паролей
+					default: { break; }
 				}
 			}
-			return statusCode;
+			return CamStatusCode;
 		}
-
 	}
-
 }

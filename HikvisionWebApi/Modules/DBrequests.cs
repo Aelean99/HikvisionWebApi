@@ -20,32 +20,32 @@ namespace Hikvision.Modules
 
 		public class DbData
 		{
-			public string signature { get; set; }
-			public object? data { get; set; }
-			public List<CameraData> message { get; set; }
+			[JsonProperty( "signature" )]public string Signature { get; set; }
+			[JsonProperty("data")]public object? Data { get; set; }
+			[JsonProperty( "message" )]public List<CameraData> Message { get; set; }
 		}
 
 		public class CameraData
 		{	
-			public uint? id { get; set; }
-			public bool? active { get; set; }
-			public string password { get; set; }
-			public ushort? screen_url { get; set; }
-			public bool? monitoring { get; set; }
-			public bool? mic { get; set; }
-			public string rtsp_ip { get; set; }
-			public ushort? camera_type { get; set; }
-			public ushort? camera_status { get; set; }
-			public ushort? settings { get; set; }
-			public string detection_mask { get; set; }
-			public ushort? detection_status { get; set; }
-			public string mac { get; set; }
-			public string serial { get; set; }
+			[JsonProperty( "id" )]public uint? Id { get; set; }
+			[JsonProperty( "active" )] public bool? Active { get; set; }
+			[JsonProperty( "password" )] public string Password { get; set; }
+			[JsonProperty( "screen_url" )] public ushort? ScreenUrl { get; set; }
+			[JsonProperty( "monitoring" )] public bool? Monitoring { get; set; }
+			[JsonProperty( "mic" )] public bool? Mic { get; set; }
+			[JsonProperty( "rtsp_ip" )] public string RtspIp { get; set; }
+			[JsonProperty( "camera_type" )] public ushort? CameraType { get; set; }
+			[JsonProperty( "camera_status" )] public ushort? CameraStatus { get; set; }
+			[JsonProperty( "settings" )] public ushort? Settings { get; set; }
+			[JsonProperty( "detection_mask" )] public string DetectionMask { get; set; }
+			[JsonProperty( "detection_status" )] public ushort? DetectionStatus { get; set; }
+			[JsonProperty( "mac" )] public string Mac { get; set; }
+			[JsonProperty( "serial")] public string Serial { get; set; }
 		}
 
 		public class CamId
 		{
-			 public uint? id { get; set; }
+			[JsonProperty( "id" )] public uint? Id { get; set; }
 		}
 
 		public static async Task<string> CameraEdit(uint id, bool audioEnabled)
@@ -55,10 +55,10 @@ namespace Hikvision.Modules
 			var macAddress = (string)jObject["DeviceInfo"]?["macAddress"];
 			var data = new DbData
 			{
-				signature = (string)dbconf?["signature"],
-				data = new CameraData
+				Signature = (string)dbconf?["signature"],
+				Data = new CameraData
 				{
-					detection_mask = 
+					DetectionMask = 
 						"1111111111111111111111" +
 						"1111111111111111111111" +
 						"1111111111111111111111" +
@@ -77,17 +77,17 @@ namespace Hikvision.Modules
 						"1111111111111111111111" +
 						"1111111111111111111111" +
 						"1111111111111111111111",
-					id = id,
-					active = true,
-					settings = audioEnabled ? 61 : 48,
-					camera_status = 105,
-					camera_type = 1,
-					screen_url = 2,
-					detection_status = 205,
-					monitoring = true,
-					password = (string)dbconf["password"],
-					mac = macAddress,
-					serial = serialNo,
+					Id = id,
+					Active = true,
+					Settings = audioEnabled ? 61 : 48,
+					CameraStatus = 105,
+					CameraType = 1,
+					ScreenUrl = 2,
+					DetectionStatus = 205,
+					Monitoring = true,
+					Password = (string)dbconf["password"],
+					Mac = macAddress,
+					Serial = serialNo,
 				}
 			};
 			JsonContent content = JsonContent.Create(data);
@@ -98,14 +98,14 @@ namespace Hikvision.Modules
 		{
 			var data = new DbData()
 			{
-				signature = (string) dbconf["signature"],
-				data = new CamId { id = id }
+				Signature = (string) dbconf["signature"],
+				Data = new CamId { Id = id }
 			};
 
 			JsonContent content = JsonContent.Create(data);
 			var response = await client.PostAsync((string) dbconf["cameraGet"], content).Result.Content.ReadAsStringAsync();
 			var deserializedResponce = JsonConvert.DeserializeObject<DbData>( response );
-			return deserializedResponce.message;
+			return deserializedResponce.Message;
 		}
 	}
 }

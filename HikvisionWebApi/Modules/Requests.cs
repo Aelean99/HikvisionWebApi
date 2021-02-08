@@ -29,6 +29,21 @@ namespace Hikvision.Modules
 			}
 		}
 
+		public static string XmlToJson( string data )
+		{
+			try
+			{
+				XmlDocument doc = new();
+				doc.LoadXml( data ?? string.Empty );
+				var jsonContent = JsonConvert.SerializeXmlNode( doc );
+				return jsonContent;
+			}
+			catch ( Exception e )
+			{
+				return e.Message;
+			}
+		}
+
 		/// <summary>
 		/// Получить системную конфигурацию устройства(MAC адрес, serial номер и т.п)
 		/// </summary>
