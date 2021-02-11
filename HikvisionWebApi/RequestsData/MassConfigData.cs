@@ -1,16 +1,23 @@
-﻿namespace Hikvision.RequestsData
+﻿using Newtonsoft.Json;
+
+namespace Hikvision.RequestsData
 {
 	public class MassConfigData
 	{
-		public uint id { get; set; }
-		public TimeData.NTPServer ntpData { get; set; }
-		public TimeData.Time timeData { get; set; }
-		public OsdData.channelNameOverlay osdChannelNameData { get; set; }
-		public OsdData.dateTimeOverlay osdDateTimeData { get; set; }
-		public EmailData.Mailing emailData { get; set; }
-		public StreamingData.StreamingChannel streamingData { get; set; }
-		public DetectionData.MotionDetection detectionData { get; set; }
-		public DetectionData.EventTriggerNotificationList eventTriggerData { get; set; }
-		public NetworkData.RootData networkData { get; set; }
+		[JsonProperty( "id" )] public uint Id { get; set; }
+		[JsonProperty( "ntpData" )] public NtpData NtpData { get; set; }
+		[JsonProperty( "timeData" )] public TimeData TimeData { get; set; }
+		[JsonProperty( "osdChannelNameData" )] public OsdChannelNameData OsdChannelNameData { get; set; }
+		[JsonProperty( "osdDatetimeData" )] public OsdDatetimeData OsdDateTimeData { get; set; }
+		[JsonProperty( "emailData" )] public EmailData EmailData { get; set; }
+		[JsonProperty( "streamingData" )] public StreamingData StreamingData { get; set; }
+		[JsonProperty( "detectionData" )] public DetectionData DetectionData { get; set; }
+		[JsonProperty( "eventTriggerData" )] public NotificationData EventTriggerData { get; set; }
+		[JsonProperty( "networkData" )] public NetworkData NetworkData { get; set; }
+	}
+
+	public class CamId
+	{
+		[JsonProperty("id")]public uint Id { get; set; }
 	}
 }

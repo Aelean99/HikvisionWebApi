@@ -5,6 +5,10 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 
+using Hikvision.Controllers;
+
+using Microsoft.Extensions.Logging;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,21 +17,21 @@ namespace Hikvision.Modules
 	public class DBrequests
 	{
 		public static JObject dbconf = JObject.Parse( File.ReadAllText( "dbvalues.json" ) );
-		public static HttpClient client = new( new SocketsHttpHandler(), false ) 
+		public static HttpClient client = new( new SocketsHttpHandler(), false )
 		{
-			BaseAddress = new Uri((string) dbconf["url"])
+			BaseAddress = new Uri( (string) dbconf["url"] )
 		};
 
 		public class DbData
 		{
-			[JsonProperty( "signature" )]public string Signature { get; set; }
-			[JsonProperty("data")]public object? Data { get; set; }
-			[JsonProperty( "message" )]public List<CameraData> Message { get; set; }
+			[JsonProperty( "signature" )] public string Signature { get; set; }
+			[JsonProperty( "data" )] public object? Data { get; set; }
+			[JsonProperty( "message" )] public List<CameraData> Message { get; set; }
 		}
 
 		public class CameraData
-		{	
-			[JsonProperty( "id" )]public uint? Id { get; set; }
+		{
+			[JsonProperty( "id" )] public uint? Id { get; set; }
 			[JsonProperty( "active" )] public bool? Active { get; set; }
 			[JsonProperty( "password" )] public string Password { get; set; }
 			[JsonProperty( "screen_url" )] public ushort? ScreenUrl { get; set; }
@@ -40,17 +44,28 @@ namespace Hikvision.Modules
 			[JsonProperty( "detection_mask" )] public string DetectionMask { get; set; }
 			[JsonProperty( "detection_status" )] public ushort? DetectionStatus { get; set; }
 			[JsonProperty( "mac" )] public string Mac { get; set; }
-			[JsonProperty( "serial")] public string Serial { get; set; }
+			[JsonProperty( "serial" )] public string Serial { get; set; }
 		}
 
+		private readonly ILogger _logger;
+		public DBrequests ( ILogger<DBrequests> logger )
+		{
+			_logger = logger;
+		}
 		public class CamId
 		{
 			[JsonProperty( "id" )] public uint? Id { get; set; }
 		}
 
-		public static async Task<string> CameraEdit(uint id, bool audioEnabled)
+		public async Task<string> CameraEdit(uint id, bool audioEnabled)
 		{
-			var jObject = Requests.ToJObject(await Requests.DeviceInfo());
+			_logger.LogInformation( $"CameraEdit method is used on {DateTime.Now}" );
+			var jObject = Converters.ToJObject(await GetRequests.DeviceInfo());
+			if ( jObject is null )
+			{
+				_logger.LogInformation( "Error: CameraEdit.jObject received an empty response from the device" );
+				return "jObject: empty response from device";
+			}
 			var serialNo = (string)jObject["DeviceInfo"]?["serialNumber"];
 			var macAddress = (string)jObject["DeviceInfo"]?["macAddress"];
 			var data = new DbData

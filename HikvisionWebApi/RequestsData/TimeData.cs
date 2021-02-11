@@ -1,18 +1,11 @@
 ﻿using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 namespace Hikvision.RequestsData
 {
 	public class TimeData
 	{
-		public class NTPServer
-		{
-			public string id { get; set; }
-			public string addressingFormatType { get; set; }
-			public string ipAddress { get; set; }
-			public byte portNo { get; set; }
-			public byte synchronizeInterval { get; set; }
-		} 
-
+		[JsonProperty("Time")] public Time time { get; set; }
 		public class Time
 		{
 			public string timeMode { get; set; }

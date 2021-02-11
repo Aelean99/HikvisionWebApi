@@ -1,17 +1,11 @@
-﻿using System.Xml.Serialization;
+﻿using Newtonsoft.Json;
 
 namespace Hikvision.RequestsData
 {
-	public class OsdData
+	public class OsdDatetimeData
 	{
-		public class channelNameOverlay
-		{
-			public bool enabled { get; set; }
-			public short positionX { get; set; }
-			public short positionY { get; set; }
-		}
-
-		public class dateTimeOverlay
+		[JsonProperty( "OsdDatetime" )] public OsdDatetime osdDateTime { get; set; }
+		public class OsdDatetime
 		{
 			public bool enabled { get; set; }
 			public short positionX { get; set; }

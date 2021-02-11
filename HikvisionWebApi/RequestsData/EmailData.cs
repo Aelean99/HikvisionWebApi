@@ -1,15 +1,16 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Hikvision.RequestsData
 {
 	public class EmailData
 	{
+		[JsonProperty( "mailing" )] public Mailing mailing { get; set; }
 		public class Mailing
 		{
 			public byte id { get; set; }
 			public Sender sender { get; set; }
-			public ReceiverList receiverList { get; set; }
+			public List<ReceiverList> receiverList { get; set; }
 			public Attachment attachment { get; set; }
 		}
 
@@ -27,6 +28,8 @@ namespace Hikvision.RequestsData
 			public string addressingFormatType { get; set; }
 			public string hostName { get; set; }
 			public int portNo { get; set; }
+			public string accountName { get; set; }
+			public string password { get; set; }
 		}
 
 		public class ReceiverList

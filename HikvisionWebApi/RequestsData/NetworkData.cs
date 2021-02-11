@@ -1,4 +1,5 @@
 ﻿using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 namespace Hikvision.RequestsData
 {
@@ -7,47 +8,48 @@ namespace Hikvision.RequestsData
 	/// </summary>
 	public class NetworkData
 	{
-		public class RootData
+		[JsonProperty( "IPAddress" )] public IPAddress ipAddress { get; set; }
+		public class IPAddress
 		{
-			public string ipVersion { get; set; }
-			public string addressingType { get; set; }
-			public string ipAddress { get; set; }
-			public string subnetMask { get; set; }
-			public DefaultGateway DefaultGateway { get; set; }
-			public PrimaryDNS PrimaryDNS { get; set; }
-			public SecondaryDNS SecondaryDNS { get; set; }
-			public Ipv6Mode Ipv6Mode { get; set; }
+			[JsonProperty( "ipVersion" )]public string IpVersion { get; set; }
+			[JsonProperty( "addressingType" )]public string AddressingType { get; set; }
+			[JsonProperty( "ipAddress" )] public string IpAddress { get; set; }
+			[JsonProperty( "subnetMask" )] public string SubnetMask { get; set; }
+			[JsonProperty( "DefaultGateway" )] public DefaultGateway DefaultGateway { get; set; }
+			[JsonProperty( "PrimaryDNS" )] public PrimaryDNS PrimaryDNS { get; set; }
+			[JsonProperty( "SecondaryDNS" )] public SecondaryDNS SecondaryDNS { get; set; }
+			[JsonProperty( "Ipv6Mode" )] public Ipv6Mode Ipv6Mode { get; set; }
 		}
 
 		public class DefaultGateway
 		{
-			public string ipAddress { get; set; }
+			[JsonProperty( "ipAddress" )] public string IpAddress { get; set; }
 		}
 		public class PrimaryDNS
 		{
-			public string ipAddress { get; set; }
+			[JsonProperty( "ipAddress" )] public string IpAddress { get; set; }
 		}
 		public class SecondaryDNS
 		{
-			public string ipAddress { get; set; }
+			[JsonProperty( "ipAddress" )] public string IpAddress { get; set; }
 		}
 
 		public class Ipv6Mode
 		{
-			public string ipV6AddressingType { get; set; }
-			public Ipv6AddressList ipv6AddressList { get; set; }
+			[JsonProperty( "ipV6AddressingType" )] public string IpV6AddressingType { get; set; }
+			[JsonProperty( "ipv6AddressList" )] public Ipv6AddressList Ipv6AddressList { get; set; }
 		}
 		
 		public class Ipv6AddressList
 		{
-			public V6Address v6Address { get; set; }
+			[JsonProperty( "v6Address" )] public V6Address v6Address { get; set; }
 		}
 		public class V6Address
 		{
-			public byte id { get; set; }
-			public string type { get; set; }
-			public string address { get; set; }
-			public byte bitMask { get; set; }
+			[JsonProperty( "id" )] public byte Id { get; set; }
+			[JsonProperty( "type" )] public string Type { get; set; }
+			[JsonProperty( "address" )] public string Address { get; set; }
+			[JsonProperty( "bitMask" )] public byte BitMask { get; set; }
 		}
 
 

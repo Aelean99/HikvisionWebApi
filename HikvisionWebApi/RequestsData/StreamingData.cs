@@ -1,7 +1,10 @@
-﻿namespace Hikvision.RequestsData
+﻿using Newtonsoft.Json;
+
+namespace Hikvision.RequestsData
 {
 	public class StreamingData
 	{
+		[JsonProperty( "StreamingChannel")] public StreamingChannel streamingChannel { get; set; }
 		public class StreamingChannel
 		{
 			public Video Video { get; set; }

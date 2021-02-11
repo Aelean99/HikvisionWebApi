@@ -4,6 +4,7 @@ namespace Hikvision.RequestsData
 {
 	public class CamResponses
 	{
+		[JsonProperty( "DeviceInfo" )] public DeviceInfo deviceInfo { get; set; }
 		public class DeviceInfo
 		{
 			public string serialNumber { get; set; }

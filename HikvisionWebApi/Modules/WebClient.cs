@@ -49,7 +49,7 @@ namespace Hikvision.Modules
 					return 404;
 				}
 
-				var jsonResponse = Requests.XmlToJson(await response.Content.ReadAsStringAsync()); // Если запрос прошёл, камера вернёт ответ в виде XML
+				var jsonResponse = Converters.XmlToJson(await response.Content.ReadAsStringAsync()); // Если запрос прошёл, камера вернёт ответ в виде XML
 				CamResponses responseData = JsonConvert.DeserializeObject<CamResponses>( jsonResponse );
 				CamStatusCode = responseData.userCheck.StatusValue; // Извлекаем результат из тела ответа камеры
 				switch ( CamStatusCode )
