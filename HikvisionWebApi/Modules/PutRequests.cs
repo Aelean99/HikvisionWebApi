@@ -30,7 +30,7 @@ namespace Hikvision.Modules
 
 				var serial = $"HK-{deviceInfoData.deviceInfo.serialNumber}@camera.ru";  //HK-serialNumber@camera.ru
 				data.mailing.sender.emailAddress = serial;
-				data.mailing.receiverList[0].receiver.emailAddress = serial;
+				data.mailing.receiverList.receiver[0].emailAddress = serial;
 
 				using var xmlData = Converters.ToStringContent( data, "mailing" );
 				var response = await WebClient.Client.PutAsync( "System/Network/mailing/1", xmlData ).Result.Content.ReadAsStringAsync();
@@ -74,7 +74,6 @@ namespace Hikvision.Modules
 		/// <summary>
 		/// Настройка часового пояса
 		/// </summary>
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> SetTimeFromBody( [FromBody] TimeData data )
 		{
 			_logger.Info( "[SetTimeFromBody] Method started" );
@@ -99,8 +98,6 @@ namespace Hikvision.Modules
 		/// <summary>
 		/// Настройка видео-аудио конфигурации
 		/// </summary>
-
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> SetStreamConfigFromBody( [FromBody] StreamingData data )
 		{
 			_logger.Info( "[SetStreamConfigFromBody] Method started" );
@@ -125,7 +122,6 @@ namespace Hikvision.Modules
 		/// <summary>
 		/// Change DNS on device
 		/// </summary>
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> SetDnsFromBody( [FromBody] NetworkData data )
 		{
 			_logger.Info( "[SetDnsFromBody] Method started" );
@@ -192,7 +188,6 @@ namespace Hikvision.Modules
 		/// Настройка отображения времени на канале
 		/// Отключение отображения
 		/// </summary>
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> SetOsdDateTimeFromBody( [FromBody] OsdDatetimeData data )
 		{
 			_logger.Info( "[SetOsdDateTimeFromBody] Method started" );
@@ -217,7 +212,6 @@ namespace Hikvision.Modules
 		/// <summary>
 		/// Настройка способа отправки детекции
 		/// </summary>
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> SetAlarmNotificationsFromBody( [FromBody] NotificationData data )
 		{
 			_logger.Info( "[SetAlarmNotificationsFromBody] Method started" );
@@ -242,7 +236,6 @@ namespace Hikvision.Modules
 		/// <summary>
 		/// Включение детекции движения с предустановленной заполенной маской детекции
 		/// </summary>
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> SetDetectionFromBody( [FromBody] DetectionData data )
 		{
 			_logger.Info( "[SetDetectionFromBody] Method started" );
@@ -264,10 +257,36 @@ namespace Hikvision.Modules
 		}
 
 
+		public static async Task<string> ChangePassword()
+		{
+			_logger.Info( "[ChangePassword] Method started" );
+			try
+			{
+				var userData = new UserData.User
+				{
+					Id = 1,
+					UserName = "admin",
+					Password = WebClient.Password
+				};
+				using var xmlData = Converters.ToStringContent( userData, "User" );
+				var response = await WebClient.Client.PutAsync( "Security/users/1", xmlData ).Result.Content.ReadAsStringAsync();
+				var jsonResponse = Converters.XmlToJson(response);
+				var responseData = JsonConvert.DeserializeObject<CamResponses>(jsonResponse);
+
+				_logger.Info( "[ChangePassword] Method has complete" );
+				return $"{responseData.responseStatus.StatusString,-10} Request url {responseData.responseStatus.RequestUrl}";
+			}
+			catch (Exception e)
+			{
+				_logger.Error( $"[ChangePassword] Method failed. \nError message: {e.Message}" );
+				return e.Message;
+			}
+		}
+
+
 		/// <summary>
 		/// Метод повторной смены маски детекции
 		/// </summary>
-		[HttpPut, Route( "[action]" )]
 		public static async Task<string> ChangeDetectionMaskFromBody( [FromBody] DetectionData.GridFromDB data )
 		{
 			_logger.Info( "[ChangeDetectionMaskFromBody] Method started" );

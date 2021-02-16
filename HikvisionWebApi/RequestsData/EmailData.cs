@@ -6,11 +6,12 @@ namespace Hikvision.RequestsData
 	public class EmailData
 	{
 		[JsonProperty( "mailing" )] public Mailing mailing { get; set; }
+
 		public class Mailing
 		{
 			public byte id { get; set; }
 			public Sender sender { get; set; }
-			public List<ReceiverList> receiverList { get; set; }
+			public ReceiverList receiverList { get; set; }
 			public Attachment attachment { get; set; }
 		}
 
@@ -34,7 +35,7 @@ namespace Hikvision.RequestsData
 
 		public class ReceiverList
 		{
-			public Receiver receiver { get; set; }
+			public List<Receiver> receiver { get; set; }
 		}
 
 		public class Receiver

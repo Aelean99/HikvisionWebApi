@@ -1,79 +1,43 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-
-using Hikvision.Controllers;
-
-using Microsoft.Extensions.Logging;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Hikvision.RequestsData;
 
 namespace Hikvision.Modules
 {
 	public class DBrequests
 	{
-		public static JObject dbconf = JObject.Parse( File.ReadAllText( "dbvalues.json" ) );
-		public static HttpClient client = new( new SocketsHttpHandler(), false )
+		private static readonly JObject Dbconf = JObject.Parse( File.ReadAllText( "dbvalues.json" ) );
+		private static readonly HttpClient Client = new( new SocketsHttpHandler(), false )
 		{
-			BaseAddress = new Uri( (string) dbconf["url"] )
+			BaseAddress = new Uri( (string) Dbconf["url"] ?? string.Empty )
 		};
 
-		public class DbData
+		public static async Task<string> CameraEdit(uint id, bool audioEnabled, string rtsp_ip)
 		{
-			[JsonProperty( "signature" )] public string Signature { get; set; }
-			[JsonProperty( "data" )] public object? Data { get; set; }
-			[JsonProperty( "message" )] public List<CameraData> Message { get; set; }
-		}
-
-		public class CameraData
-		{
-			[JsonProperty( "id" )] public uint? Id { get; set; }
-			[JsonProperty( "active" )] public bool? Active { get; set; }
-			[JsonProperty( "password" )] public string Password { get; set; }
-			[JsonProperty( "screen_url" )] public ushort? ScreenUrl { get; set; }
-			[JsonProperty( "monitoring" )] public bool? Monitoring { get; set; }
-			[JsonProperty( "mic" )] public bool? Mic { get; set; }
-			[JsonProperty( "rtsp_ip" )] public string RtspIp { get; set; }
-			[JsonProperty( "camera_type" )] public ushort? CameraType { get; set; }
-			[JsonProperty( "camera_status" )] public ushort? CameraStatus { get; set; }
-			[JsonProperty( "settings" )] public ushort? Settings { get; set; }
-			[JsonProperty( "detection_mask" )] public string DetectionMask { get; set; }
-			[JsonProperty( "detection_status" )] public ushort? DetectionStatus { get; set; }
-			[JsonProperty( "mac" )] public string Mac { get; set; }
-			[JsonProperty( "serial" )] public string Serial { get; set; }
-		}
-
-		private readonly ILogger _logger;
-		public DBrequests ( ILogger<DBrequests> logger )
-		{
-			_logger = logger;
-		}
-		public class CamId
-		{
-			[JsonProperty( "id" )] public uint? Id { get; set; }
-		}
-
-		public async Task<string> CameraEdit(uint id, bool audioEnabled)
-		{
-			_logger.LogInformation( $"CameraEdit method is used on {DateTime.Now}" );
-			var jObject = Converters.ToJObject(await GetRequests.DeviceInfo());
-			if ( jObject is null )
+			//_logger.LogInformation( $"CameraEdit method is used on {DateTime.Now}" );
+			var deviceInfoObject = await GetRequests.DeviceInfo();
+			if ( deviceInfoObject is null )
 			{
-				_logger.LogInformation( "Error: CameraEdit.jObject received an empty response from the device" );
-				return "jObject: empty response from device";
+				//_logger.LogInformation( "Error: CameraEdit.jObject received an empty response from the device" );
+				return "empty response from device";
 			}
-			var serialNo = (string)jObject["DeviceInfo"]?["serialNumber"];
-			var macAddress = (string)jObject["DeviceInfo"]?["macAddress"];
+			var serialNo = deviceInfoObject.deviceInfo.serialNumber;
+			var macAddress = deviceInfoObject.deviceInfo.macAddress;
 			var data = new DbData
 			{
-				Signature = (string)dbconf?["signature"],
+				Signature = (string)Dbconf?["signature"],
 				Data = new CameraData
 				{
-					DetectionMask = 
+					detection_mask = 
 						"1111111111111111111111" +
 						"1111111111111111111111" +
 						"1111111111111111111111" +
@@ -94,31 +58,47 @@ namespace Hikvision.Modules
 						"1111111111111111111111",
 					Id = id,
 					Active = true,
-					Settings = audioEnabled ? 61 : 48,
-					CameraStatus = 105,
-					CameraType = 1,
-					ScreenUrl = 2,
-					DetectionStatus = 205,
+					camera_status = 105,
+					camera_type = 1,
+					screen_url = 2,
+					Mic = audioEnabled,
+					detection_status = 205,
 					Monitoring = true,
-					Password = (string)dbconf["password"],
+					Password = (string)Dbconf["password"],
 					Mac = macAddress,
 					Serial = serialNo,
+					rtsp_ip = rtsp_ip
 				}
 			};
 			JsonContent content = JsonContent.Create(data);
-			return await client.PostAsync((string)dbconf["cameraEdit"], content).Result.Content.ReadAsStringAsync();
+			return await Client.PostAsync((string)Dbconf["cameraEdit"], content).Result.Content.ReadAsStringAsync();
+		}
+
+		public static async Task<string> CameraEdit( uint id)
+		{
+			var data = new DbData
+			{
+				Signature = (string) Dbconf?["signature"],
+				Data = new CameraError()
+				{
+					Id = id,
+					camera_status = 104
+				}
+			};
+			JsonContent content = JsonContent.Create( data );
+			return await Client.PostAsync( (string) Dbconf["cameraEdit"], content ).Result.Content.ReadAsStringAsync();
 		}
 
 		public static async Task<List<CameraData>> CameraGet(uint id)
 		{
 			var data = new DbData()
 			{
-				Signature = (string) dbconf["signature"],
+				Signature = (string) Dbconf["signature"],
 				Data = new CamId { Id = id }
 			};
 
 			JsonContent content = JsonContent.Create(data);
-			var response = await client.PostAsync((string) dbconf["cameraGet"], content).Result.Content.ReadAsStringAsync();
+			var response = await Client.PostAsync((string) Dbconf["cameraGet"], content).Result.Content.ReadAsStringAsync();
 			var deserializedResponce = JsonConvert.DeserializeObject<DbData>( response );
 			return deserializedResponce.Message;
 		}

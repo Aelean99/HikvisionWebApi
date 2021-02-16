@@ -16,8 +16,4 @@ namespace Hikvision.RequestsData
 		[JsonProperty( "networkData" )] public NetworkData NetworkData { get; set; }
 	}
 
-	public class CamId
-	{
-		[JsonProperty("id")]public uint Id { get; set; }
-	}
 }

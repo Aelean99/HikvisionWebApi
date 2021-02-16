@@ -7,6 +7,7 @@
     <AnalysisLevel>5.0</AnalysisLevel>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <UserSecretsId>06bda5a1-dc58-496d-b786-ea7587031767</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

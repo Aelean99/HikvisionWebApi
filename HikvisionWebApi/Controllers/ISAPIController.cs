@@ -2,12 +2,13 @@
 using Hikvision.RequestsData;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+
+using NLog;
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NLog;
+
 using WebClient = Hikvision.Modules.WebClient;
 // ReSharper disable All
 
@@ -41,7 +42,13 @@ namespace Hikvision.Controllers
 
 			foreach ( var item in camListData )
 			{
-				cam_ip = item.RtspIp; //извлекаем ip адрес для создания подключения с камерой
+				cam_ip = item.rtsp_ip; //извлекаем ip адрес для создания подключения с камерой
+			}
+
+			if (cam_ip is null)
+			{
+				rtspIp = null;
+				return 601;
 			}
 
 			var authStatus = 0;
@@ -69,6 +76,44 @@ namespace Hikvision.Controllers
 			rtspIp = cam_ip;
 			_logger.Info( "[CheckClient] Method has completed" );
 			return authStatus;
+		}
+
+		[HttpPost, Route("[action]")]
+		public async Task<string> ChangeDetectionMaskFromBody([FromBody] DetectionData.GridFromDB data )
+		{
+			var authStatus = CheckClient( data.id, out string rtspIp );
+			switch (authStatus)
+			{
+				case 200:
+				{
+					_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 200" );
+					Console.WriteLine( $"Setting gridMask {rtspIp}" );
+					var response = await PutRequests.ChangeDetectionMaskFromBody(data);
+					Console.WriteLine( "Done" );
+					_logger.Info( "[ChangeDetectionMaskFromBody] Configuration is complete. \nMethod has completed" );
+					return response;
+				}
+				case 401:
+				{
+					_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 401. Unauthorized. \nMethod has completed" );
+					return null;
+				}
+				case 404:
+				{
+					_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 404. Device not supported. \nMethod has completed" );
+					return null;
+				}
+				case 601:
+				{
+					_logger.Info( "[ChangeDetectionMaskFromBody] Status 601. Rtsp_ip is null. \nMethod has completed" );
+					return null;
+				}
+				default:
+				{
+					_logger.Info( $"[ChangeDetectionMaskFromBody] Auth status {authStatus}. Default error. \nMethod has completed" );
+					return null;
+				}
+			}
 		}
 
 
@@ -109,6 +154,11 @@ namespace Hikvision.Controllers
 					_logger.Info( "[GetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
 					return null;
 				}
+				case 601:
+				{
+					_logger.Info( "[GetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
+					return null;
+				}
 				default:
 				{
 					_logger.Info( $"[GetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
@@ -137,13 +187,36 @@ namespace Hikvision.Controllers
 					Console.WriteLine( await PutRequests.SetAlarmNotificationsFromBody( data.EventTriggerData ) );
 					Console.WriteLine( await PutRequests.SetDnsFromBody( data.NetworkData ) );
 					Console.WriteLine( await PutRequests.SetStreamConfigFromBody( data.StreamingData ) );
+					Console.WriteLine( await PutRequests.ChangePassword());
+					Console.WriteLine( await DBrequests.CameraEdit(data.Id, data.StreamingData.streamingChannel.Audio.enabled, rtspIp));
 					Console.WriteLine( "Done" );
 
 					return $"Status сode {authStatus}: OK";
 				}
-				case 401: { return $"Status сode {authStatus}: Unauthorized"; }
-				case 404: { return $"Status сode {authStatus}: Device not supported/Method's not found on this device"; }
-				default: { return $"Default error: {authStatus}"; }
+				case 401:
+				{
+					_logger.Info( "[SetAllConfigurations] Auth status 401. Unauthorized. \nMethod has completed" );
+					await DBrequests.CameraEdit(data.Id);
+					return null;
+				}
+				case 404:
+				{
+					_logger.Info( "[SetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
+					await DBrequests.CameraEdit( data.Id );
+					return null;
+				}
+				case 601:
+				{
+					_logger.Info( "[SetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
+					await DBrequests.CameraEdit( data.Id );
+					return null;
+				}
+				default:
+				{
+					_logger.Info( $"[SetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
+					await DBrequests.CameraEdit( data.Id );
+					return null;
+				}
 			}
 		}
 	}
