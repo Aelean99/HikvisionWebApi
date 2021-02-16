@@ -1,9 +1,11 @@
-﻿using NLog;
+﻿using Hikvision.RequestsData;
+
+using Newtonsoft.Json;
+
+using NLog;
 
 using System;
 using System.Threading.Tasks;
-using Hikvision.RequestsData;
-using Newtonsoft.Json;
 
 namespace Hikvision.Modules
 {
@@ -39,18 +41,18 @@ namespace Hikvision.Modules
 		/// </summary>
 		public static async Task<NetworkData> Ethernet()
 		{
-			_logger.Info("[Ethernet] Method started");
+			_logger.Info( "[Ethernet] Method started" );
 			try
 			{
 				var response = await WebClient.Client.GetStringAsync( "System/Network/interfaces/1/ipAddress" );
-				var jsonResponse = Converters.XmlToJson(response);
-				var deserializedObject = JsonConvert.DeserializeObject<NetworkData>(jsonResponse);
+				var jsonResponse = Converters.XmlToJson( response );
+				var deserializedObject = JsonConvert.DeserializeObject<NetworkData>( jsonResponse );
 				_logger.Info( "[Ethernet] Method has complete" );
 				return deserializedObject;
 			}
 			catch ( Exception e )
 			{
-				_logger.Error($"[Ethernet] Error: {e.Message}");
+				_logger.Error( $"[Ethernet] Error: {e.Message}" );
 				return new NetworkData();
 			}
 		}
@@ -177,7 +179,7 @@ namespace Hikvision.Modules
 			}
 			catch ( Exception e )
 			{
-				_logger.Error($"[OsdDatetimeData] Error: {e.Message}");
+				_logger.Error( $"[OsdDatetimeData] Error: {e.Message}" );
 				return new OsdDatetimeData();
 			}
 		}

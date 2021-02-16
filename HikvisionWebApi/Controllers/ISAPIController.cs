@@ -29,15 +29,15 @@ namespace Hikvision.Controllers
 
 
 
-	[ApiController, Route("api/[controller]/")]
+	[ApiController, Route( "api/[controller]/" )]
 	public class IsapiController : ControllerBase
 	{
 		private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-		private static int CheckClient(uint id, out string rtspIp)
+		private static int CheckClient( uint id, out string rtspIp )
 		{
-			_logger.Info("[CheckClient] Method started");
-			var camListData = Task.Run(() => DBrequests.CameraGet(id)).Result; //получить данные о камере из базы 
+			_logger.Info( "[CheckClient] Method started" );
+			var camListData = Task.Run( () => DBrequests.CameraGet( id ) ).Result; //получить данные о камере из базы 
 			string cam_ip = string.Empty;
 
 			foreach ( var item in camListData )
@@ -45,7 +45,7 @@ namespace Hikvision.Controllers
 				cam_ip = item.rtsp_ip; //извлекаем ip адрес для создания подключения с камерой
 			}
 
-			if (cam_ip is null)
+			if ( cam_ip is null )
 			{
 				rtspIp = null;
 				return 601;
@@ -55,12 +55,12 @@ namespace Hikvision.Controllers
 			if ( WebClient.Client is null )  //Если клиент не соединён ни с одной из камер - то инициализировать соединие
 			{
 				_logger.Info( "[CheckClient] Client is an empty object. Object initialization" );
-				authStatus = Task.Run(() => WebClient.InitClient( cam_ip )).Result;
+				authStatus = Task.Run( () => WebClient.InitClient( cam_ip ) ).Result;
 			}
 			else if ( WebClient.CamIp != cam_ip ) //Так же если у созданного соединения с камерой, старый ip отличается от нового, то создать подключение с новым ip адресом 
 			{
 				_logger.Info( $"[CheckClient] IP address of the current object [{WebClient.CamIp}] differs from the incoming one [{cam_ip}]. Initialization of a new object" );
-				authStatus = Task.Run( () => WebClient.InitClient( cam_ip )).Result;
+				authStatus = Task.Run( () => WebClient.InitClient( cam_ip ) ).Result;
 			}
 			else if ( WebClient.CamIp == cam_ip && WebClient.CamStatusCode == 200 )
 			{
@@ -78,145 +78,145 @@ namespace Hikvision.Controllers
 			return authStatus;
 		}
 
-		[HttpPost, Route("[action]")]
-		public async Task<string> ChangeDetectionMaskFromBody([FromBody] DetectionData.GridFromDB data )
+		[HttpPost, Route( "[action]" )]
+		public async Task<string> ChangeDetectionMaskFromBody( [FromBody] DetectionData.GridFromDB data )
 		{
 			var authStatus = CheckClient( data.id, out string rtspIp );
-			switch (authStatus)
+			switch ( authStatus )
 			{
 				case 200:
-				{
-					_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 200" );
-					Console.WriteLine( $"Setting gridMask {rtspIp}" );
-					var response = await PutRequests.ChangeDetectionMaskFromBody(data);
-					Console.WriteLine( "Done" );
-					_logger.Info( "[ChangeDetectionMaskFromBody] Configuration is complete. \nMethod has completed" );
-					return response;
-				}
+					{
+						_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 200" );
+						Console.WriteLine( $"Setting gridMask {rtspIp}" );
+						var response = await PutRequests.ChangeDetectionMaskFromBody( data );
+						Console.WriteLine( "Done" );
+						_logger.Info( "[ChangeDetectionMaskFromBody] Configuration is complete. \nMethod has completed" );
+						return response;
+					}
 				case 401:
-				{
-					_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 401. Unauthorized. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 401. Unauthorized. \nMethod has completed" );
+						return null;
+					}
 				case 404:
-				{
-					_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 404. Device not supported. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 404. Device not supported. \nMethod has completed" );
+						return null;
+					}
 				case 601:
-				{
-					_logger.Info( "[ChangeDetectionMaskFromBody] Status 601. Rtsp_ip is null. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( "[ChangeDetectionMaskFromBody] Status 601. Rtsp_ip is null. \nMethod has completed" );
+						return null;
+					}
 				default:
-				{
-					_logger.Info( $"[ChangeDetectionMaskFromBody] Auth status {authStatus}. Default error. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( $"[ChangeDetectionMaskFromBody] Auth status {authStatus}. Default error. \nMethod has completed" );
+						return null;
+					}
 			}
 		}
 
 
-		[HttpPost, Route("[action]")]
+		[HttpPost, Route( "[action]" )]
 		public async Task<MassConfigData> GetAllConfigurations( [FromBody] CamId data )
 		{
 			_logger.Info( "[GetAllConfigurations] Method started" );
-			var authStatus = CheckClient(data.Id, out string rtspIp);
+			var authStatus = CheckClient( data.Id, out string rtspIp );
 			MassConfigData massConfig = new();
 			switch ( authStatus )
 			{
 				case 200:
-				{
-					_logger.Info( "[GetAllConfigurations] Auth status 200. Start of configuration" );
-					Console.WriteLine( $"Getting data from {rtspIp}" );
-					massConfig.Id = data.Id;
-					massConfig.NetworkData = await GetRequests.Ethernet();
-					massConfig.DetectionData =  await GetRequests.Detection();
-					massConfig.EmailData = await GetRequests.Email();
-					massConfig.TimeData = await GetRequests.Time();
-					massConfig.NtpData = await GetRequests.Ntp();
-					massConfig.OsdChannelNameData = await GetRequests.OsdChannelName();
-					massConfig.OsdDateTimeData = await GetRequests.OsdDateTime();
-					massConfig.StreamingData = await GetRequests.StreamingChannel();
-					massConfig.EventTriggerData = await GetRequests.EventNotifications();
+					{
+						_logger.Info( "[GetAllConfigurations] Auth status 200. Start of configuration" );
+						Console.WriteLine( $"Getting data from {rtspIp}" );
+						massConfig.Id = data.Id;
+						massConfig.NetworkData = await GetRequests.Ethernet();
+						massConfig.DetectionData = await GetRequests.Detection();
+						massConfig.EmailData = await GetRequests.Email();
+						massConfig.TimeData = await GetRequests.Time();
+						massConfig.NtpData = await GetRequests.Ntp();
+						massConfig.OsdChannelNameData = await GetRequests.OsdChannelName();
+						massConfig.OsdDateTimeData = await GetRequests.OsdDateTime();
+						massConfig.StreamingData = await GetRequests.StreamingChannel();
+						massConfig.EventTriggerData = await GetRequests.EventNotifications();
 
-					Console.WriteLine( "Done" );
-					_logger.Info( "[GetAllConfigurations] Configuration is complete. \nMethod has completed" );
-					return massConfig;
-				}
+						Console.WriteLine( "Done" );
+						_logger.Info( "[GetAllConfigurations] Configuration is complete. \nMethod has completed" );
+						return massConfig;
+					}
 				case 401:
-				{
-					_logger.Info( "[GetAllConfigurations] Auth status 401. Unauthorized. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( "[GetAllConfigurations] Auth status 401. Unauthorized. \nMethod has completed" );
+						return null;
+					}
 				case 404:
-				{
-					_logger.Info( "[GetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( "[GetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
+						return null;
+					}
 				case 601:
-				{
-					_logger.Info( "[GetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( "[GetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
+						return null;
+					}
 				default:
-				{
-					_logger.Info( $"[GetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
-					return null;
-				}
+					{
+						_logger.Info( $"[GetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
+						return null;
+					}
 			}
 		}
 
-		[HttpPost, Route("[action]")]
-		public async Task<string> SetAllConfigurations([FromBody] MassConfigData data)
+		[HttpPost, Route( "[action]" )]
+		public async Task<string> SetAllConfigurations( [FromBody] MassConfigData data )
 		{
 
-			var authStatus = CheckClient(data.Id, out string rtspIp);
+			var authStatus = CheckClient( data.Id, out string rtspIp );
 
 			switch ( authStatus )
 			{
-				case 200: 
-				{
-					Console.WriteLine( $"Setting {rtspIp}" );
-					Console.WriteLine( await PutRequests.SetTimeFromBody( data.TimeData ) );
-					Console.WriteLine( await PutRequests.SetNtpFromBody( data.NtpData ) );
-					Console.WriteLine( await PutRequests.SetOsdChannelNameFromBody( data.OsdChannelNameData ) );
-					Console.WriteLine( await PutRequests.SetOsdDateTimeFromBody( data.OsdDateTimeData ) );
-					Console.WriteLine( await PutRequests.SetEmailFromBody( data.EmailData ) );
-					Console.WriteLine( await PutRequests.SetDetectionFromBody( data.DetectionData ) );
-					Console.WriteLine( await PutRequests.SetAlarmNotificationsFromBody( data.EventTriggerData ) );
-					Console.WriteLine( await PutRequests.SetDnsFromBody( data.NetworkData ) );
-					Console.WriteLine( await PutRequests.SetStreamConfigFromBody( data.StreamingData ) );
-					Console.WriteLine( await PutRequests.ChangePassword());
-					Console.WriteLine( await DBrequests.CameraEdit(data.Id, data.StreamingData.streamingChannel.Audio.enabled, rtspIp));
-					Console.WriteLine( "Done" );
+				case 200:
+					{
+						Console.WriteLine( $"Setting {rtspIp}" );
+						Console.WriteLine( await PutRequests.SetTimeFromBody( data.TimeData ) );
+						Console.WriteLine( await PutRequests.SetNtpFromBody( data.NtpData ) );
+						Console.WriteLine( await PutRequests.SetOsdChannelNameFromBody( data.OsdChannelNameData ) );
+						Console.WriteLine( await PutRequests.SetOsdDateTimeFromBody( data.OsdDateTimeData ) );
+						Console.WriteLine( await PutRequests.SetEmailFromBody( data.EmailData ) );
+						Console.WriteLine( await PutRequests.SetDetectionFromBody( data.DetectionData ) );
+						Console.WriteLine( await PutRequests.SetAlarmNotificationsFromBody( data.EventTriggerData ) );
+						Console.WriteLine( await PutRequests.SetDnsFromBody( data.NetworkData ) );
+						Console.WriteLine( await PutRequests.SetStreamConfigFromBody( data.StreamingData ) );
+						Console.WriteLine( await PutRequests.ChangePassword() );
+						Console.WriteLine( await DBrequests.CameraEdit( data.Id, data.StreamingData.streamingChannel.Audio.enabled, rtspIp ) );
+						Console.WriteLine( "Done" );
 
-					return $"Status сode {authStatus}: OK";
-				}
+						return $"Status сode {authStatus}: OK";
+					}
 				case 401:
-				{
-					_logger.Info( "[SetAllConfigurations] Auth status 401. Unauthorized. \nMethod has completed" );
-					await DBrequests.CameraEdit(data.Id);
-					return null;
-				}
+					{
+						_logger.Info( "[SetAllConfigurations] Auth status 401. Unauthorized. \nMethod has completed" );
+						await DBrequests.CameraEdit( data.Id );
+						return null;
+					}
 				case 404:
-				{
-					_logger.Info( "[SetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
-					await DBrequests.CameraEdit( data.Id );
-					return null;
-				}
+					{
+						_logger.Info( "[SetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
+						await DBrequests.CameraEdit( data.Id );
+						return null;
+					}
 				case 601:
-				{
-					_logger.Info( "[SetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
-					await DBrequests.CameraEdit( data.Id );
-					return null;
-				}
+					{
+						_logger.Info( "[SetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
+						await DBrequests.CameraEdit( data.Id );
+						return null;
+					}
 				default:
-				{
-					_logger.Info( $"[SetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
-					await DBrequests.CameraEdit( data.Id );
-					return null;
-				}
+					{
+						_logger.Info( $"[SetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
+						await DBrequests.CameraEdit( data.Id );
+						return null;
+					}
 			}
 		}
 	}

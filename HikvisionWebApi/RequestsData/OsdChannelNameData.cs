@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Hikvision.RequestsData
 {

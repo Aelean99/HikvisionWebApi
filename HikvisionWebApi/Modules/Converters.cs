@@ -14,17 +14,17 @@ namespace Hikvision.Modules
 		/// </summary>
 		/// <param name="data">XML объект из которого в дальнейшем будут извлечены значения</param>
 		/// <returns>десериализованный jobject объект</returns>
-		public static JObject ToJObject(object data)
+		public static JObject ToJObject( object data )
 		{
 			try
 			{
 				XmlDocument doc = new();
-				doc.LoadXml(data.ToString() ?? string.Empty);
-				var jsonContent = JsonConvert.SerializeXmlNode(doc);
-				return  (JObject)JsonConvert.DeserializeObject(jsonContent);
+				doc.LoadXml( data.ToString() ?? string.Empty );
+				var jsonContent = JsonConvert.SerializeXmlNode( doc );
+				return (JObject) JsonConvert.DeserializeObject( jsonContent );
 			}
-			catch (Exception e)
-			{ 
+			catch ( Exception e )
+			{
 				return new JObject();
 			}
 		}

@@ -132,7 +132,7 @@ namespace Hikvision.Modules
 			//извлекаем текущие значения конфигурации сети
 			var addressingType = networkData.ipAddress.AddressingType;
 
-			if (addressingType != "static") return $"Addressing type is {addressingType}. Can`t set DNS";
+			if ( addressingType != "static" ) return $"Addressing type is {addressingType}. Can`t set DNS";
 			var ipAddress = networkData.ipAddress.IpAddress;
 			var subnetMask = networkData.ipAddress.SubnetMask;
 			var defaultGateway = networkData.ipAddress.DefaultGateway.IpAddress;
@@ -270,13 +270,13 @@ namespace Hikvision.Modules
 				};
 				using var xmlData = Converters.ToStringContent( userData, "User" );
 				var response = await WebClient.Client.PutAsync( "Security/users/1", xmlData ).Result.Content.ReadAsStringAsync();
-				var jsonResponse = Converters.XmlToJson(response);
-				var responseData = JsonConvert.DeserializeObject<CamResponses>(jsonResponse);
+				var jsonResponse = Converters.XmlToJson( response );
+				var responseData = JsonConvert.DeserializeObject<CamResponses>( jsonResponse );
 
 				_logger.Info( "[ChangePassword] Method has complete" );
 				return $"{responseData.responseStatus.StatusString,-10} Request url {responseData.responseStatus.RequestUrl}";
 			}
-			catch (Exception e)
+			catch ( Exception e )
 			{
 				_logger.Error( $"[ChangePassword] Method failed. \nError message: {e.Message}" );
 				return e.Message;

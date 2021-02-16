@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace Hikvision.RequestsData
 {
@@ -11,8 +10,8 @@ namespace Hikvision.RequestsData
 		[JsonProperty( "IPAddress" )] public IPAddress ipAddress { get; set; }
 		public class IPAddress
 		{
-			[JsonProperty( "ipVersion" )]public string IpVersion { get; set; }
-			[JsonProperty( "addressingType" )]public string AddressingType { get; set; }
+			[JsonProperty( "ipVersion" )] public string IpVersion { get; set; }
+			[JsonProperty( "addressingType" )] public string AddressingType { get; set; }
 			[JsonProperty( "ipAddress" )] public string IpAddress { get; set; }
 			[JsonProperty( "subnetMask" )] public string SubnetMask { get; set; }
 			[JsonProperty( "DefaultGateway" )] public DefaultGateway DefaultGateway { get; set; }
@@ -39,7 +38,7 @@ namespace Hikvision.RequestsData
 			[JsonProperty( "ipV6AddressingType" )] public string IpV6AddressingType { get; set; }
 			[JsonProperty( "ipv6AddressList" )] public Ipv6AddressList Ipv6AddressList { get; set; }
 		}
-		
+
 		public class Ipv6AddressList
 		{
 			[JsonProperty( "v6Address" )] public V6Address v6Address { get; set; }

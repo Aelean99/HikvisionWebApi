@@ -4,13 +4,10 @@ using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Xml;
-using Newtonsoft.Json.Linq;
 
 namespace Hikvision.Modules
 {
@@ -20,32 +17,32 @@ namespace Hikvision.Modules
 		public static int CamStatusCode { get; private set; }
 		internal static HttpClient Client { get; private set; }
 		internal static string Password { get; private set; }
-		
-		internal WebClient(string ip, string password)
+
+		internal WebClient( string ip, string password )
 		{
 			var camBaseUri = $"http://{ip}/ISAPI/";
-			
+
 			CredentialCache credCache = new()
 			{
-					{new UriBuilder(camBaseUri).Uri, "Basic", new NetworkCredential("admin", password)},
-					{new UriBuilder(camBaseUri).Uri, "Digest", new NetworkCredential("admin", password)}
-			}; 
-				
-			Client = new HttpClient(new SocketsHttpHandler{ConnectTimeout = TimeSpan.FromSeconds(30),Credentials = credCache}, disposeHandler: true)
-			{ 
-				BaseAddress = new UriBuilder(camBaseUri).Uri 
+				{ new UriBuilder( camBaseUri ).Uri, "Basic", new NetworkCredential( "admin", password ) },
+				{ new UriBuilder( camBaseUri ).Uri, "Digest", new NetworkCredential( "admin", password ) }
+			};
+
+			Client = new HttpClient( new SocketsHttpHandler { ConnectTimeout = TimeSpan.FromSeconds( 30 ), Credentials = credCache }, disposeHandler: true )
+			{
+				BaseAddress = new UriBuilder( camBaseUri ).Uri
 			};
 		}
 
 		public class PasswordCollection
 		{
-			[JsonProperty("passwords")]public List<string> Passwords { get; set; } 
+			[JsonProperty( "passwords" )] public List<string> Passwords { get; set; }
 		}
 
-		internal static async Task<int> InitClient(string ip)
+		internal static async Task<int> InitClient( string ip )
 		{
 			CamIp = ip;
-			var passwordCollection = JsonConvert.DeserializeObject<PasswordCollection>(File.ReadAllText("passwords.json"));
+			var passwordCollection = JsonConvert.DeserializeObject<PasswordCollection>( File.ReadAllText( "passwords.json" ) );
 
 			foreach ( var password in passwordCollection.Passwords )
 			{

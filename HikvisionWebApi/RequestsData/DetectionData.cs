@@ -7,17 +7,17 @@ namespace Hikvision.RequestsData
 		/// <summary>
 		/// Настройка поведения детекции движения
 		/// </summary>
-		[JsonProperty("MotionDetection")]
+		[JsonProperty( "MotionDetection" )]
 		public MotionDetection motionDetection { get; set; }
 
 		public class MotionDetection
 		{
-			[JsonProperty("enabled")] public bool Enabled { get; set; }
-			[JsonProperty("enableHighlight")] public bool EnableHighlight { get; set; }
-			[JsonProperty("regionType")] public string RegionType { get; set; }
-			[JsonProperty("Grid")] public Grid Grid { get; set; }
+			[JsonProperty( "enabled" )] public bool Enabled { get; set; }
+			[JsonProperty( "enableHighlight" )] public bool EnableHighlight { get; set; }
+			[JsonProperty( "regionType" )] public string RegionType { get; set; }
+			[JsonProperty( "Grid" )] public Grid Grid { get; set; }
 
-			[JsonProperty("MotionDetectionLayout")]
+			[JsonProperty( "MotionDetectionLayout" )]
 			public MotionDetectionLayout MotionDetectionLayout { get; set; }
 		}
 
