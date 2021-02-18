@@ -87,9 +87,9 @@ namespace Hikvision.Controllers
 				case 200:
 					{
 						_logger.Info( "[ChangeDetectionMaskFromBody] Auth status 200" );
-						Console.WriteLine( $"Setting gridMask {rtspIp}" );
+						
 						var response = await PutRequests.ChangeDetectionMaskFromBody( data );
-						Console.WriteLine( "Done" );
+						
 						_logger.Info( "[ChangeDetectionMaskFromBody] Configuration is complete. \nMethod has completed" );
 						return response;
 					}
@@ -188,7 +188,6 @@ namespace Hikvision.Controllers
 						Console.WriteLine( await PutRequests.SetDnsFromBody( data.NetworkData ) );
 						Console.WriteLine( await PutRequests.SetStreamConfigFromBody( data.StreamingData ) );
 						Console.WriteLine( await PutRequests.ChangePassword() );
-						Console.WriteLine( await DBrequests.CameraEdit( data.Id, data.StreamingData.streamingChannel.Audio.enabled, rtspIp ) );
 						Console.WriteLine( "Done" );
 
 						return $"Status сode {authStatus}: OK";
@@ -196,26 +195,22 @@ namespace Hikvision.Controllers
 				case 401:
 					{
 						_logger.Info( "[SetAllConfigurations] Auth status 401. Unauthorized. \nMethod has completed" );
-						await DBrequests.CameraEdit( data.Id );
-						return null;
+						return "Auth status 401. Unauthorized.";
 					}
 				case 404:
 					{
 						_logger.Info( "[SetAllConfigurations] Auth status 404. Device not supported. \nMethod has completed" );
-						await DBrequests.CameraEdit( data.Id );
-						return null;
+						return "Auth status 404. Device not supported.";
 					}
 				case 601:
 					{
 						_logger.Info( "[SetAllConfigurations] Status 601. Rtsp_ip is null. \nMethod has completed" );
-						await DBrequests.CameraEdit( data.Id );
-						return null;
+						return "Status 601. Rtsp_ip is null.";
 					}
 				default:
 					{
 						_logger.Info( $"[SetAllConfigurations] Auth status {authStatus}. Default error. \nMethod has completed" );
-						await DBrequests.CameraEdit( data.Id );
-						return null;
+						return "Default error.";
 					}
 			}
 		}

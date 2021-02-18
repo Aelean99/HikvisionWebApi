@@ -34,6 +34,12 @@ namespace Hikvision.RequestsData
 		[JsonProperty( "camera_status" )] public ushort? camera_status { get; set; }
 	}
 
+	public class MaskError
+	{
+		[JsonProperty("id")] public uint Id { get; set; }
+		[JsonProperty("detection_status")] public ushort? detection_status { get; set; }
+	}
+
 	public class CamId
 	{
 		[JsonProperty( "id" )] public uint Id { get; set; }
